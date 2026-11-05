@@ -734,6 +734,7 @@
 .bigpic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 </style>
 <div class="ov" id="bossOv" style="z-index:97"><div class="ovbox hpbox msnbox"><div id="bossHead" style="font-size:25px;font-weight:900"></div><div class="bigpic" id="bossPic"></div><div class="msnname" id="bossName"></div><div class="msnsay" id="bossSay"></div><div class="msnitems" id="bossItems"></div><button class="go" id="bossGo"></button></div></div>
+<div class="ov" id="pgOv" style="z-index:130"><div class="ovbox"><div style="font-size:22px;font-weight:900">🔒 家長確認</div><div style="font-size:14px;opacity:.8;margin-top:4px">改設定前請大人回答</div><div id="pgQ" style="font-size:34px;font-weight:900;margin:12px 0"></div><input id="pgIn" inputmode="numeric" autocomplete="off" style="font-size:30px;width:150px;text-align:center;border-radius:12px;border:2px solid #ffd98f;padding:6px"><div class="row2"><button class="go" id="pgNo" style="background:#556">取消</button><button class="go" id="pgOk">確定</button></div></div></div>
 <div class="ov" id="isleOv" style="z-index:95"><div class="ovbox hpbox"><img id="isleImg" alt="" style="display:block;width:100%;height:min(46vh,340px);object-fit:cover;border-radius:12px;animation:pop .35s ease-out"><div style="font-size:28px;font-weight:900;margin:12px 0 2px">🏝️ 椰風島開放了！</div><div style="font-size:18px">🥥 🏄 🎣 🌺 🍍 🐢 🏴‍☠️ 👑</div><button class="go" id="isleGo">🏝️ ➜</button></div></div>
 <div class="ov" id="holiPv"><div class="ovbox hpbox"><button class="hpx" id="hpClose">✖</button><img id="hpImg" alt=""><div id="hpInfo"></div></div></div>
 <div class="ov" id="feedPick"><div class="ovbox fpbox">
@@ -1708,7 +1709,14 @@ function settleChallenge(){
   return `<div class="chalr ok">🏆 挑戰通過！金幣 +100，⭐ 極光能量 ${me.stars}${unlock?`<br>✨ 極光變亮了，小鎮出現「${unlock.name}」！`:""}</div>`;
 }
 // 家長設定畫面
-function openParent(){
+// 家長鎖：改出題設定或進家長頁前，要先答一題乘法（一年級還不會）；答對後這次打開遊戲的期間都不用再答
+let parentOk = false;
+function parentGate(then){ if(parentOk) return then && then(); const a = RI(6,9), b = RI(6,9), ov = document.getElementById("pgOv"), inp = document.getElementById("pgIn");
+  document.getElementById("pgQ").textContent = `${a} × ${b} = ?`; inp.value = ""; ov.classList.add("on"); setTimeout(()=>inp.focus(), 50);
+  document.getElementById("pgNo").onclick = ()=>ov.classList.remove("on");
+  document.getElementById("pgOk").onclick = ()=>{ if(+inp.value===a*b){ parentOk = true; ov.classList.remove("on"); then && then(); } else { ov.classList.remove("on"); toast("🔒 要請大人來喔"); } }; }
+function openParent(){ parentGate(openParentNow); }
+function openParentNow(){
   const drawOpt = ()=>{
     document.getElementById("pTime").innerHTML = [[0,"不計時"],[20,"20 秒"],[30,"30 秒"]].map(([v,n])=>`<button class="chip ${cfg.time===v?"on":""}" data-v="${v}">${n}</button>`).join("");
     document.getElementById("pGap").innerHTML = [3,5].map(v=>`<button class="chip ${cfg.gap===v?"on":""}" data-v="${v}">隔 ${v} 題</button>`).join("");
@@ -2577,6 +2585,8 @@ document.querySelector(".hud").onclick = ()=>pickHero();
 document.getElementById("tPar").onclick = ()=>openParent();
 document.getElementById("rest").onclick = ()=>endGame();
 document.getElementById("itLens").onclick = useLens; document.getElementById("itBomb").onclick = useBomb;
+// 首頁的範圍和設定也要先過家長鎖，孩子點了只會跳出確認
+[document.getElementById("sPick"), document.getElementById("sWeak"), ...document.querySelectorAll(".chips[data-k]")].forEach(el=>el && el.addEventListener("click", e=>{ if(parentOk) return; e.stopPropagation(); e.preventDefault(); parentGate(); }, true));
 document.getElementById("spk").onclick = ()=>{ if(cur && cur.sent) return sayEn(document.querySelector("#fb.on") ? cur.full : cur.snd); if(cur && cur.en){ if(document.querySelector("#fb.on") || cur.kind!=="read") return sayEn(cur.en); return; } const fb = document.querySelector("#fb.on .exp"); speak(fb ? fb.textContent.replace("💡","") : cur.say); };
 lifetime(); renderMe();
 // 版面上固定的圖
