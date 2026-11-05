@@ -526,6 +526,7 @@
   <div class="top">
     <span class="pill" id="qno"></span>
     <span class="pill" id="lives"></span>
+    <span class="pill" id="msnPill"></span>
     <span class="pill" id="pts">0 分</span>
     <button class="pill rest" id="rest">⛺ 先休息</button>
   </div>
@@ -691,6 +692,26 @@
   <button class="go" id="welOk">🎁 ✅</button>
 </div></div>
 <span class="zy" aria-hidden="true" style="position:fixed;left:-99px;top:0;font-size:12px;opacity:0;pointer-events:none">數</span>
+<style>
+.msnbox{max-width:420px;text-align:center}
+.msnpic{position:relative;width:min(62vw,240px,34vh);height:min(62vw,240px,34vh);margin:6px auto 8px;border-radius:50%;overflow:hidden;background:#27405f;box-shadow:0 0 26px rgba(150,220,255,.7)}
+.msnpic img{width:100%;height:100%;object-fit:contain}
+.msnfog{position:absolute;inset:-12%;background:radial-gradient(circle at 30% 35%,#eef6ff 0 26%,transparent 52%),radial-gradient(circle at 72% 30%,#d6e4f5 0 24%,transparent 50%),radial-gradient(circle at 50% 72%,#c3d3e8 0 34%,transparent 62%),rgba(170,190,215,.72);filter:blur(5px);transition:opacity 2s ease-out;animation:msnDrift 5s ease-in-out infinite alternate}
+@keyframes msnDrift{from{transform:translateX(-5%)}to{transform:translateX(5%)}}
+.msnname{font-size:26px;font-weight:900;margin:2px 0}
+.msnbar{height:14px;border-radius:8px;background:rgba(255,255,255,.18);overflow:hidden;margin:8px 8px 2px}
+.msnbar i{display:block;height:100%;background:linear-gradient(90deg,#7fe3ff,#ffe27a);transition:width 1.6s ease-out}
+.msnsay{font-size:20px;font-weight:800;margin-top:6px}
+.msnitems{display:flex;justify-content:center;gap:10px;margin-top:8px}
+.msnitems img{width:60px;height:60px;object-fit:contain;animation:pop .5s ease-out}
+#msnPill{display:none;align-items:center;gap:4px;padding:2px 10px 2px 3px}
+#msnPill img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:#27405f}
+.skb{position:fixed;left:50%;top:26%;z-index:120;transform:translate(-50%,0);pointer-events:none;white-space:nowrap;font-weight:900;color:#fff;text-shadow:0 0 16px var(--sk),0 3px 0 rgba(0,0,0,.45);animation:skIn 1.25s ease-out forwards}
+@keyframes skIn{0%{transform:translate(-50%,0) scale(.2);opacity:0}22%{transform:translate(-50%,0) scale(1.25);opacity:1}38%{transform:translate(-50%,0) scale(1)}78%{opacity:1}100%{transform:translate(-50%,-34px) scale(1.05);opacity:0}}
+.skf{position:fixed;inset:0;z-index:119;pointer-events:none;animation:skF .7s ease-out forwards}
+@keyframes skF{0%{opacity:.55}100%{opacity:0}}
+</style>
+<div class="ov" id="msnOv" style="z-index:96"><div class="ovbox hpbox msnbox"><div id="msnHead" style="font-size:24px;font-weight:900"></div><div class="msnpic" id="msnPic"><img id="msnImg" alt=""><i class="msnfog" id="msnFog"></i></div><div class="msnname" id="msnName"></div><div class="msnbar"><i id="msnBar"></i></div><div id="msnCount" style="font-size:15px;opacity:.85"></div><div class="msnitems" id="msnItems"></div><div class="msnsay" id="msnSay"></div><button class="go" id="msnGo"></button></div></div>
 <div class="ov" id="isleOv" style="z-index:95"><div class="ovbox hpbox"><img id="isleImg" alt="" style="display:block;width:100%;height:min(46vh,340px);object-fit:cover;border-radius:12px;animation:pop .35s ease-out"><div style="font-size:28px;font-weight:900;margin:12px 0 2px">🏝️ 椰風島開放了！</div><div style="font-size:18px">🥥 🏄 🎣 🌺 🍍 🐢 🏴‍☠️ 👑</div><button class="go" id="isleGo">🏝️ ➜</button></div></div>
 <div class="ov" id="holiPv"><div class="ovbox hpbox"><button class="hpx" id="hpClose">✖</button><img id="hpImg" alt=""><div id="hpInfo"></div></div></div>
 <div class="ov" id="feedPick"><div class="ovbox fpbox">
@@ -1361,9 +1382,46 @@ function bestBuild(){ return BLD.filter(b=>blv(b.id)>0 && canBuild(b)[0]).sort((
 // 金幣夠不夠用進度條看：滿了就可以升級（一年級還比不出數字大小）
 function costBar(c){ const need = c.coin||0, have = me.res.coin||0, pct = need ? Math.min(100,have/need*100) : 100, full = pct>=100;
   return `<div class="cbar ${full?"full":""}"><div class="cbf" style="width:${pct}%"></div><span>${ri("coin")}${full?" ✅":""}</span></div>`; }
+// ───────────── 救援任務：答對 10 題趕走暗影霧，幫被困住的居民找回收藏；集滿就救出來 ─────────────
+const MSN_GOAL = 10, MSN_DAY = 2, MSN_ITEMS = 3, MSN_COIN = 200;
+const colLeft = b => colOrder(b).filter(i=>colHave(colKey(b,i))<=0);
+// 先救最接近集滿的那一位，比較快看到成果
+function msnPick(){ let best = null, most = -1; for(const b in COLS){ const left = colLeft(b); if(!left.length || (me.people||[]).includes(COLS[b].p)) continue; const has = COLS[b].items.length-left.length; if(has>most){ most = has; best = b; } } return best; }
+const msnNow = () => { const m = me.msn; return m && m.d===today() && m.b && m.n<MSN_GOAL ? m : null; };
+const msnFogOf = b => { const t = COLS[b].items.length; return Math.max(0, 0.95*colLeft(b).length/t); };
+function msnShow(b, head, say, btn, cb, items){ const pr = pOf(COLS[b].p), t = COLS[b].items.length, has = t-colLeft(b).length;
+  document.getElementById("msnHead").textContent = head; document.getElementById("msnImg").src = IMG(pr.id); document.getElementById("msnName").textContent = pr.n;
+  document.getElementById("msnCount").textContent = `${has}/${t}`; document.getElementById("msnBar").style.width = (has/t*100)+"%"; document.getElementById("msnSay").textContent = say;
+  document.getElementById("msnItems").innerHTML = (items||[]).map(i=>`<img src="${IMG(colKey(b,i))}" alt="">`).join("");
+  const go = document.getElementById("msnGo"); go.textContent = btn; go.onclick = ()=>{ document.getElementById("msnOv").classList.remove("on"); cb&&cb(); };
+  document.getElementById("msnPic").onclick = ()=>speak(document.getElementById("msnSay").dataset.v||say);
+  document.getElementById("msnOv").classList.add("on"); }
+// 求救信：點「開始答題」時出現，一年級看圖聽語音就懂
+function msnLetter(){ if(msnNow()) return false; const d = today(), c = me.msn && me.msn.d===d ? me.msn.c||0 : 0; if(c>=MSN_DAY) return false; const b = msnPick(); if(!b) return false;
+  const pr = pOf(COLS[b].p); me.msn = {d, c, b, n:0}; const first = !me.msnIntro; me.msnIntro = 1; saveMe();
+  document.getElementById("msnFog").style.opacity = msnFogOf(b);
+  const v = `${first?"暗影霧遮住了世界，只有答對題目才能趕走它。":""}我是${pr.n}，我被霧困住了！答對十題來救我！`;
+  msnShow(b, "🆘 救救我！", `✅ ×${MSN_GOAL}`, "⚔️ 出發 ➜", startFlow); document.getElementById("msnSay").dataset.v = v; sfx("unlock"); speak(v); return true; }
+function msnPill(){ const el = document.getElementById("msnPill"), m = msnNow(); if(!el) return; if(!m){ el.style.display = "none"; return; } el.style.display = "inline-flex"; el.innerHTML = `<img src="${IMG(COLS[m.b].p)}" alt="">🌫️ ${m.n}/${MSN_GOAL}`; }
+function msnRescue(b, got, done, fogFrom){ const pr = pOf(COLS[b].p), fog = document.getElementById("msnFog"), left = colLeft(b).length;
+  fog.style.transition = "none"; fog.style.opacity = fogFrom;
+  msnShow(b, done?"🎉 救出來了！":"🌟 霧變少了！", done?`🚚 ${pr.n}`:`+${MSN_COIN} 🪙`, "➜", null, got);
+  void fog.offsetWidth; fog.style.transition = ""; setTimeout(()=>{ fog.style.opacity = done ? 0 : msnFogOf(b); }, 80);
+  const v = done ? `謝謝你救了我！我是${pr.n}，我要搬來和你一起住！` : `謝謝你！霧變少了，再加油！`; document.getElementById("msnSay").dataset.v = v;
+  sfx(done?"level":"unlock"); burst(done?"🎉":"✨"); speak(v); }
+function msnTick(){ const m = msnNow(); if(!m) return ""; m.n++; msnPill(); if(m.n<MSN_GOAL) return "";
+  const b = m.b, fogFrom = msnFogOf(b), got = colLeft(b).slice(0,MSN_ITEMS), pr = pOf(COLS[b].p); m.c = (m.c||0)+1; me.col = me.col||{}; got.forEach(i=>{ me.col[colKey(b,i)] = 1; }); addCoin(MSN_COIN);
+  const done = colDone(b); if(done && !me.people.includes(pr.id)){ me.people.push(pr.id); sess.moved.push(pr.n); }
+  setTimeout(()=>msnRescue(b, got, done, fogFrom), 650); return `<div class="lucky">🌟 ${done?`救出 ${pr.n}！`:"霧變少了！"} +${MSN_COIN}</div>`; }
+// 連對衝刺：越連越誇張，金幣倍率也跟著變高；答錯只是倍率歸零
+const skMul = () => streak>=10 ? 2.5 : streak>=5 ? 2 : streak>=3 ? 1.5 : 1;
+function skBurst(){ const hit = [3,5,10,15,20].includes(streak) || (streak>20 && streak%10===0); if(!hit) return; const big = streak>=10, mid = streak>=5, col = big?"#ff5ad1":mid?"#ff8a2b":"#ffc83d";
+  const f = document.createElement("div"); f.className = "skf"; f.style.background = `radial-gradient(circle,transparent 30%,${col})`; document.body.appendChild(f); setTimeout(()=>f.remove(),750);
+  const d = document.createElement("div"); d.className = "skb"; d.style.setProperty("--sk",col); d.style.fontSize = big?"58px":mid?"48px":"38px"; d.textContent = `${big?"🔥🔥🔥":mid?"🔥🔥":"🔥"} ${streak} 連對！ 🪙×${skMul()}`; document.body.appendChild(d); setTimeout(()=>d.remove(),1300);
+  burst(big?"🎆":mid?"🔥":"⭐"); if(big) rwSfx = "level"; else rwSfx = rwSfx || "streak"; }
 function earn(q){
   const bonus = (bon("lumber")+bon("mine")+bon("kiln"))*0.05 + pBonus("pct");
-  const c = Math.round(15 * (1+bonus) * (streak>=3 ? 1.5 : 1) * (curAg ? 1.5 : 1) + bon("farm")*2 + pBonus("coin"));
+  const c = Math.round(15 * (1+bonus) * skMul() * (curAg ? 1.5 : 1) + bon("farm")*2 + pBonus("coin"));
   me.res.coin = (me.res.coin||0) + c; me.got = me.got || {}; me.got.coin = (me.got.coin||0) + c; sess.res.coin = (sess.res.coin||0) + c;
   flyRes("coin"); popNum(c);
   let msg = `+${c} ${ri("coin")}` + helpStrip();
@@ -1391,7 +1449,7 @@ function earn(q){
     const x = w[0]; me.people.push(x.id); me.since = 0; sess.moved.push(x.n);
     msg += `<br><span class="new">🚚 新居民搬進來了：${x.n}（${x.job}）！</span>`; rwSfx = rwSfx || "unlock";
   }
-  return msg;
+  return msg + msnTick();
 }
 // 答對時，材料從畫面中間飛上去
 function flyRes(k){
@@ -2047,7 +2105,7 @@ function trackPool(k){ let units = []; for(const x of allSubs()) for(const [u] o
     if(first.length) return review.length && Math.random()<0.3 ? review : first;
     review = review.concat(all.filter(ok)); }
   return review; }
-function startFlow(){ document.body.dataset.flow = "1"; const r = recheckDue(); if(r) return startExam(r,true); const u = examDue(); if(u) return startExam(u); go({name:"冰原", area:"flow", n:888}); }
+function startFlow(){ if(msnLetter()) return; document.body.dataset.flow = "1"; const r = recheckDue(); if(r) return startExam(r,true); const u = examDue(); if(u) return startExam(u); go({name:"冰原", area:"flow", n:888}); }
 const areaAll = id => id==="flow" ? BANK.filter(q=>inScope(q,cfg.tops) && !q.rare) : id==="auto" ? BANK.filter(q=>AREAS.some(a=>a.test(q))) : BANK.filter(AREAS.find(a=>a.id===id).test);
 // 每題屬於第幾個弱點（越前面的弱點，沒做過時越常出）
 let rankMap = null;
@@ -2198,7 +2256,7 @@ function nextQ(){
   n++;
   const opts = (cur.spell||cur.reorder) ? [] : cur.gen ? shuffle(cur.gen()) : cur.opts.length===2 ? cur.opts.slice() : shuffle(cur.opts.slice());   // 對錯、孝道友愛固定順序
   document.getElementById("qno").textContent = place&&place.exam ? `${place.recheck?"⏰ 抽考":"🏆 過關考"} ${base_n} / ${len}` : place&&place.area==="flow" ? unitName(cur.u) : inArea ? `還要練熟 ${pool.length} 題` : len>=888 ? `第 ${n} 題` : baseDone ? `錯題加練・剩 ${again.length} 題` : `${base_n} / ${len}`;
-  document.getElementById("lives").textContent = len===999 ? "❤️".repeat(lives)+"🤍".repeat(3-lives) : `🔥 連對 ${streak}`;
+  document.getElementById("lives").textContent = len===999 ? "❤️".repeat(lives)+"🤍".repeat(3-lives) : `🔥 連對 ${streak}`; msnPill();
   document.getElementById("pts").innerHTML = tripTxt(); goalBar();
   renderTrail(len, baseDone);
   document.body.classList.toggle("zyon", !!cur.zy);
@@ -2332,7 +2390,7 @@ function answer(o){
   }
   if(cur.sent) sayEn(cur.full); else if(cur.en) sayEn(cur.en);
   if(shielded) agMsg = "🛡️ 連對保護！連對沒有斷。<br>"+agMsg;
-  const rw = ok ? reward(cur) : "";
+  const rw = ok ? reward(cur) : ""; if(ok) skBurst();
   if(ok) sfx(rwSfx || (curAg && !again.includes(curAg) ? "unlock" : streak>=3 ? "streak" : "right"));
   const fb = document.getElementById("fb");
   fb.className = "fb on " + (ok?"ok":"bad");
