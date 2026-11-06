@@ -470,6 +470,7 @@
     <span class="pill" id="qno"></span>
     <span class="pill" id="lives"></span>
     <span class="pill" id="msnPill"></span>
+    <span class="pill" id="wbPill" style="display:none"></span>
     <span class="pill" id="pts">0 分</span>
     <button class="pill rest" id="rest">⛺ 先休息</button>
   </div>
@@ -1619,7 +1620,7 @@ function msnTick(){ const m = msnNow(); if(!m) return ""; m.n++; msnPill(); if(m
   setTimeout(()=>msnRescue(p, fogFrom), 650); return `<div class="lucky">🌟 ${done?`救出 ${pOf(p).n}！`:"霧變少了！"} +${MSN_COIN}</div>`; }
 // 自然語音：沒有錄音的句子用裝置內建語音（GitHub 版會換成錄好的聲音）
 let enEl = null;
-const VOICE = new Set(["02c4faab","032ef6e6","0645d9a8","06b32e36","09f7ca04","0b9a3a81","0e354600","1467b106","164e9af6","17dc5c89","17f8437b","1e4ac4aa","2690e232","29a93806","2ad05d5e","354cba21","3ba08782","4ad95c9c","4dbae571","4e3f2be0","539532b9","5b6a88e7","5d5ccd6d","5f2dffc4","5f35b4ba","60b35cb7","62170f02","64127043","66027c32","68e090c1","6cc66a12","762c2213","7c30df57","7deba20e","824b1878","837b6e49","848cfa4c","85bb1a4d","8aa36547","8b13bf15","8deb45ad","8e8cf2bc","8fffc506","9077035f","91927910","961652e1","962e8e18","a70da22d","ac14ea45","ac8750f8","ad5078c9","adc75767","b22225a7","b249cfa5","b27157eb","b3caca02","b5432177","b9c2a71c","bdcada54","c3152b99","c3249994","c5e50b10","c75c72fa","d4842302","dc40d39a","dd9f9931","df5dfb24","dfbf8953","dffbd8e9","e1de6b77","ebcba100","ee562233","efc2761f","efe4f1dc","f9c0ee97","fab7b7cb","fe22dcde"]);
+const VOICE = new Set(["02c4faab","032ef6e6","03f6d6db","0645d9a8","06b32e36","09f7ca04","0b9a3a81","0e354600","1467b106","164e9af6","17dc5c89","17f8437b","1e4ac4aa","2690e232","29a93806","2ad05d5e","354cba21","3ba08782","4ad95c9c","4dbae571","4e3f2be0","539532b9","5b6a88e7","5d5ccd6d","5f2dffc4","5f35b4ba","60b35cb7","62170f02","64127043","66027c32","68e090c1","6cc66a12","762c2213","7c30df57","7deba20e","824b1878","837b6e49","848cfa4c","85bb1a4d","8aa36547","8b13bf15","8deb45ad","8df3f39f","8e8cf2bc","8fffc506","9077035f","91927910","961652e1","962e8e18","9fc45e7a","a70da22d","ac14ea45","ac8750f8","ad5078c9","adc75767","b22225a7","b249cfa5","b27157eb","b3caca02","b5432177","b9c2a71c","bdcada54","c3152b99","c3249994","c5e50b10","c75c72fa","d4842302","dc40d39a","dd9f9931","df5dfb24","dfbf8953","dffbd8e9","e1de6b77","ebcba100","ee562233","efc2761f","efe4f1dc","f9c0ee97","fab7b7cb","fe22dcde"]);
 const vClean = t => String(t).replace(/<[^>]+>/g,"").replace(/[\u{E0100}-\u{E01EF}]/gu,"").replace("💡","").trim();
 const vKey = t => { let h = 0x811c9dc5; for(let i=0;i<t.length;i++){ h ^= t.charCodeAt(i); h = Math.imul(h,0x01000193); } return (h>>>0).toString(16).padStart(8,"0"); };
 function speak(t){ const k = vKey(vClean(t)); if(!VOICE.has(k)) return speakTts(t);
@@ -1661,6 +1662,36 @@ function goldOpen(){ bossOverlay("✨ 金色寶箱 ✨", null, false, "", "", ""
     else if(r<.7){ const k = ["lens","bomb","sh"][Math.floor(Math.random()*3)]; giveItem(k,2); em = {lens:"🔍",bomb:"💥",sh:"🛡️"}[k]; say = `${em} ×2`; }
     else { const p = msnPick(); if(p && msnStep(p)){ const x = pOf(p); em = `<img src="${IMG(p)}" alt="">`; say = `🌫️ ${x.n} ${(me.rsc||{})[p]||0}/${MSN_STEPS}`; if(me.people.includes(p)) say = `🚚 ${x.n}`; } else { addCoin(300); em = "🪙"; say = "+300 🪙"; } }
     saveMe(); burst("✨"); sfx("level"); bossOverlay("🎉", null, false, "", say, "", "➜", null); document.getElementById("bossPic").innerHTML = em; bossDraw(); document.getElementById("pts").innerHTML = tripTxt(); }, "哇！金色寶箱！快打開！"); const p = document.getElementById("bossPic"); p.classList.add("gold"); p.innerHTML = "🎁"; sfx("unlock"); }
+const ME_KID = "luna";
+// ───────────── 世界 Boss：姐妹一起打，每週一隻；兩人答對的題目加在一起才打得倒 ─────────────
+// 共用的進度放在雲端一份文件，文件密碼只存在兩人的存檔（me.fam），不寫在程式裡
+const WB_API = "https://firestore.googleapis.com/v1/projects/aurora-town/databases/(default)/documents";
+const WB_HP = 400, WB_CAP = 200, WB_RATE = {emma:1, luna:2};   // 一人最多打 200 下，一定要兩個人；姐姐題目比較難，一題算 2 下
+const WB_WHO = ME_KID==="emma" ? {emma:"我", luna:"姐姐"} : {luna:"我", emma:"妹妹"};
+const wbWeek = () => { const d = new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return "w"+d.toLocaleDateString("sv").replace(/-/g,""); };
+let wbRaw = {emma:0, luna:0}, wbWk = "", wbSend = 0, wbTimer = null, wbBusy = false;
+const wbOn = () => !!me.fam;
+const wbDmg = k => Math.min(WB_CAP, (wbRaw[k]||0)*WB_RATE[k]);
+const wbTotal = () => wbDmg("emma") + wbDmg("luna");
+async function wbLoad(){ if(!wbOn()) return false;
+  try{ const r = await fetch(`${WB_API}/saves/${me.fam}`, {cache:"no-store"}); if(!r.ok && r.status!==404) return false;
+    const wk = wbWeek(), f = r.ok ? ((await r.json()).fields||{})[wk] : null, m = (f && f.mapValue && f.mapValue.fields) || {};
+    wbWk = wk; wbRaw = {emma:+((m.emma||{}).integerValue||0), luna:+((m.luna||{}).integerValue||0)}; wbRaw[ME_KID] += wbSend; wbPill(); wbCheck(); return true; }catch(e){ return false; } }
+async function wbFlush(){ if(wbBusy || !wbSend || !wbOn()) return; wbBusy = true; const n = wbSend; wbSend = 0;
+  try{ const r = await fetch(`${WB_API}:commit`, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({writes:[{transform:{document:`projects/aurora-town/databases/(default)/documents/saves/${me.fam}`, fieldTransforms:[{fieldPath:`${wbWk}.${ME_KID}`, increment:{integerValue:String(n)}}]}}]})});
+    if(!r.ok) wbSend += n; }catch(e){ wbSend += n; }
+  wbBusy = false; await wbLoad(); }
+function wbHit(){ if(!wbOn() || !wbWk) return; if(wbWk!==wbWeek()){ wbLoad(); return; } if(wbDmg(ME_KID)>=WB_CAP) return; wbRaw[ME_KID]++; wbSend++; wbPill(); wbCheck(); clearTimeout(wbTimer); wbTimer = setTimeout(wbFlush, 2500); }
+function wbPill(){ const el = document.getElementById("wbPill"); if(!el) return; if(!wbOn() || !wbWk){ el.style.display = "none"; return; } el.style.display = "inline-flex"; el.textContent = wbTotal()>=WB_HP ? "🌍 ✅" : `🌍 ${wbTotal()}/${WB_HP}`; }
+const wbBars = () => ["emma","luna"].sort(k=>k===ME_KID?-1:1).map(k=>`<div style="width:100%;text-align:left;font-weight:800">${WB_WHO[k]}　${wbDmg(k)}/${WB_CAP}<div class="bosshp"><i style="width:${wbDmg(k)/WB_CAP*100}%"></i></div></div>`).join("");
+function wbShow(head, say, btn, cb, voice){ bossOverlay(head, null, false, "暗影霧王", say, `<div style="width:100%;display:flex;flex-direction:column;gap:8px">${wbBars()}</div>`, btn, cb, voice); document.getElementById("bossPic").innerHTML = `🌑<img src="art/wboss.webp" alt="" onerror="this.remove()">`; }
+// 每天第一次答題前看一下這週的世界 Boss
+function wbIntro(){ if(!wbOn() || me.wbDay===today()) return false; me.wbDay = today(); saveMe();
+  wbLoad().then(ok=>{ if(!ok) return startFlow(); const other = ME_KID==="emma" ? "姐姐" : "妹妹", done = wbTotal()>=WB_HP;
+    wbShow(done?"🌍 這週打倒了！":"🌍 世界 Boss", done?"🎉":`${wbTotal()}/${WB_HP}`, "⚔️ ➜", startFlow, done ? `你們這週已經打敗暗影霧王了！` : `暗影霧王出現了！和${other}一起打敗它！`); });
+  return true; }
+function wbCheck(){ if(!wbWk || wbTotal()<WB_HP || (me.wbGot||"")===wbWk) return; me.wbGot = wbWk; addCoin(1000); giveItem("lens"); giveItem("bomb"); giveItem("sh"); saveMe(); bossDraw();
+  setTimeout(()=>{ burst("🎉"); burst("🌈"); sfx("level"); wbShow("🎉 一起打敗了！", "+1000 🪙　🔍 💥 🛡️", "➜", null, "太棒了！你們一起打敗了暗影霧王！"); }, 600); }
 // 連對衝刺：越連越誇張，金幣倍率也跟著變高；答錯只是倍率歸零
 const skMul = () => streak>=10 ? 2.5 : streak>=5 ? 2 : streak>=3 ? 1.5 : 1;
 function skBurst(){ const hit = [3,5,10,15,20].includes(streak) || (streak>20 && streak%10===0); if(!hit) return; const big = streak>=10, mid = streak>=5, col = big?"#ff5ad1":mid?"#ff8a2b":"#ffc83d";
@@ -2312,7 +2343,7 @@ function settleExam(){ if(!place || !place.exam || place.settled) return ""; pla
 // 答錯過、還沒連對放過的題目（自然、數學連對 3 次，其他連對 2 次）
 const wrongOpen = q => { const s = stats[q.id]; return !!s && s.w>0 && !known(q) && !doneToday(q); };
 const wrongLeft = () => BANK.filter(q=>inScope(q,cfg.tops) && wrongOpen(q)).length;
-function startFlow(){ if(msnLetter()) return; if(bossIntro()) return; document.body.dataset.flow = "1"; const r = recheckDue(); if(r) return startExam(r,true); const u = examDue(); if(u) return startExam(u); go({name:"冰原", area:"flow", n:888}); }
+function startFlow(){ if(msnLetter()) return; if(bossIntro()) return; if(wbIntro()) return; if(wbOn() && !wbWk) wbLoad(); document.body.dataset.flow = "1"; const r = recheckDue(); if(r) return startExam(r,true); const u = examDue(); if(u) return startExam(u); go({name:"冰原", area:"flow", n:888}); }
 const areaAll = id => id==="flow" ? BANK.filter(q=>inScope(q,cfg.tops) && !q.rare) : id==="auto" ? BANK.filter(q=>AREAS.some(a=>a.test(q))) : BANK.filter(AREAS.find(a=>a.id===id).test);
 // 每題屬於第幾個弱點（越前面的弱點，沒做過時越常出）
 let rankMap = null;
@@ -2458,7 +2489,7 @@ function nextQ(){
   n++;
   const opts = (cur.spell||cur.reorder) ? [] : cur.gen ? shuffle(cur.gen()) : cur.opts.length===2 ? cur.opts.slice() : shuffle(cur.opts.slice());   // 對錯、孝道友愛固定順序
   document.getElementById("qno").textContent = place&&place.exam ? `${place.recheck?"⏰ 抽考":"🏆 過關考"} ${base_n} / ${len}` : place&&place.area==="flow" ? (wrongLeft() ? `🔁 錯題還有 ${wrongLeft()} 題` : unitName(cur.u)) : inArea ? `還要練熟 ${pool.length} 題` : len>=888 ? `第 ${n} 題` : baseDone ? `錯題加練・剩 ${again.length} 題` : `${base_n} / ${len}`;
-  document.getElementById("lives").textContent = len===999 ? "❤️".repeat(lives)+"🤍".repeat(3-lives) : `🔥 連對 ${streak}`; msnPill(); bossDraw();
+  document.getElementById("lives").textContent = len===999 ? "❤️".repeat(lives)+"🤍".repeat(3-lives) : `🔥 連對 ${streak}`; msnPill(); bossDraw(); wbPill();
   document.getElementById("pts").innerHTML = tripTxt(); goalBar();
   renderTrail(len, baseDone);
   document.getElementById("q").innerHTML = (curAg ? `<div><span class="tag">🔁 又遇到剛剛的難關</span><br>` : bossOn() && isWeak(cur) ? `<div><span class="tag">🎯 弱點 ×3</span><br>` : "<div>") + cur.q + "</div>";
@@ -2563,7 +2594,7 @@ function answer(o){
     else { again = again.filter(a=>a!==curAg); agMsg = "⭐ 這題真的記住了！"; }
   }
   if(shielded) agMsg = "🛡️ 連對保護！連對沒有斷。<br>"+agMsg;
-  const rw = ok ? reward(cur) : ""; if(ok){ skBurst(); goldTick(); if(bossOn()) bossHit((isWeak(cur)||curAg ? 3 : 1) + (streak>=5 ? 1 : 0)); }
+  const rw = ok ? reward(cur) : ""; if(ok){ skBurst(); goldTick(); wbHit(); if(bossOn()) bossHit((isWeak(cur)||curAg ? 3 : 1) + (streak>=5 ? 1 : 0)); }
   if(ok) sfx(rwSfx || (curAg && !again.includes(curAg) ? "unlock" : streak>=3 ? "streak" : "right"));
   const fb = document.getElementById("fb");
   fb.className = "fb on " + (ok?"ok":"bad");
