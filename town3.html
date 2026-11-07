@@ -1156,6 +1156,76 @@ EN_WK.forEach((W,i)=>{ const u = "英"+(i+1), words = W.w, others = a => shuffle
 if(EN_DO.length) ENGLISH.push({id:"en-do", u:"英1", t:"英文", s:"文法", w:6, make(){ const [q,a] = one(EN_DO);
   return {q:`文法：Do 還是 Does？\n${q}`, opts:["Do","Does"], ans:a, keepAns:true, exp:"I／you／we／they 和複數用 Do；he／she／it 和單數用 Does。"}; }});
 BANK.push(...ENGLISH);
+// 英文文法：a / an / the（補習班 Lesson 03）；a/an 兩個選項固定順序，其他題選項會打亂
+const E5 = (q,opts,ans,exp) => BANK.push({id:`英5-${BANK.filter(x=>x.u==="英5").length+1}`, u:"英5", t:"英文", s:"文法", q, opts, ans, exp, w:3});
+E5("I read ___ old book.",["a", "an"],"an","後面的字開頭是「o」的音，是母音，用 an。");
+E5("I read ___ exciting book.",["a", "an"],"an","後面的字開頭是「e」的音，是母音，用 an。");
+E5("We make ___ paper craft bookmark.",["a", "an"],"a","後面的字開頭是「p」的音，不是母音，用 a。");
+E5("My teacher tells us about ___ author.",["a", "an"],"an","後面的字開頭是「a」的音，是母音，用 an。");
+E5("I draw ___ picture about my book.",["a", "an"],"a","後面的字開頭是「p」的音，不是母音，用 a。");
+E5("My favourite book is about ___ animal.",["a", "an"],"an","後面的字開頭是「a」的音，是母音，用 an。");
+E5("We are having ___ costume parade.",["a", "an"],"a","後面的字開頭是「c」的音，不是母音，用 a。");
+E5("I am dressed like ___ astronaut.",["a", "an"],"an","後面的字開頭是「a」的音，是母音，用 an。");
+E5("My friend is dressed like ___ cat.",["a", "an"],"a","後面的字開頭是「c」的音，不是母音，用 a。");
+E5("I went to the shop to buy ___ apple.",["a", "an"],"an","後面的字開頭是「a」的音，是母音，用 an。");
+E5("___ spider crawled up my leg!",["A", "An"],"A","spider 開頭是 s 的音，不是母音，用 A。");
+E5("The man cut open ___ orange.",["a", "an"],"an","後面的字開頭是「o」的音，是母音，用 an。");
+E5("Yusif saw ___ elephant at the zoo.",["a", "an"],"an","後面的字開頭是「e」的音，是母音，用 an。");
+E5("The pizza needed to be put in ___ oven.",["a", "an"],"an","後面的字開頭是「o」的音，是母音，用 an。");
+E5("She has ___ umbrella.",["a", "an"],"an","看 umbrella：開頭是「u」的音，是母音，用 an。");
+E5("He is eating ___ egg.",["a", "an"],"an","看 egg：開頭是「e」的音，是母音，用 an。");
+E5("There is ___ igloo in the snow.",["a", "an"],"an","看 igloo：開頭是「i」的音，是母音，用 an。");
+E5("I saw ___ octopus in the sea.",["a", "an"],"an","看 octopus：開頭是「o」的音，是母音，用 an。");
+E5("My mom bought ___ onion.",["a", "an"],"an","看 onion：開頭是「o」的音，是母音，用 an。");
+E5("We live in ___ big house.",["a", "an"],"a","看 big：開頭是「b」的音，不是母音，用 a。");
+E5("Tom has ___ red bike.",["a", "an"],"a","看 red：開頭是「r」的音，不是母音，用 a。");
+E5("It is ___ easy question.",["a", "an"],"an","看 easy：開頭是「e」的音，是母音，用 an。");
+E5("She wants to be ___ engineer.",["a", "an"],"an","看 engineer：開頭是「e」的音，是母音，用 an。");
+E5("I have ___ dog.",["a", "an"],"a","看 dog：開頭是「d」的音，不是母音，用 a。");
+E5("Can I have ___ ice cream?",["a", "an"],"an","看 ice：開頭是「i」的音，是母音，用 an。");
+E5("He drew ___ angry face.",["a", "an"],"an","看 angry：開頭是「a」的音，是母音，用 an。");
+E5("We need ___ new table.",["a", "an"],"a","看 new：開頭是「n」的音，不是母音，用 a。");
+E5("It was ___ interesting story.",["a", "an"],"an","看 interesting：開頭是「i」的音，是母音，用 an。");
+E5("There is ___ ant on my hand.",["a", "an"],"an","看 ant：開頭是「a」的音，是母音，用 an。");
+E5("I want ___ glass of milk.",["a", "an"],"a","看 glass：開頭是「g」的音，不是母音，用 a。");
+E5("We waited for ___ hour.",["a", "an"],"an","hour 的 h 不發音，聽起來是母音開頭，用 an。");
+E5("He is ___ honest boy.",["a", "an"],"an","honest 的 h 不發音，用 an。");
+E5("She goes to ___ university.",["a", "an"],"a","university 念起來是「you」開頭，不是母音的音，用 a。");
+E5("I saw ___ unicorn in the story.",["a", "an"],"a","unicorn 念起來是「you」開頭，用 a。");
+E5("Every student wears ___ uniform.",["a", "an"],"a","uniform 念起來是「you」開頭，用 a。");
+E5("He is ___ old man.",["a", "an"],"an","old 是 o 的母音開頭，用 an。");
+E5("That is ___ useful tool.",["a", "an"],"a","useful 念起來是「you」開頭，用 a。");
+E5("She is ___ hour late.",["a", "an"],"an","hour 的 h 不發音，用 an。");
+E5("___ horse",["a", "an"],"a","horse 開頭是「h」的音，不是母音，用 a。");
+E5("___ apple",["a", "an"],"an","apple 開頭是「a」的音，是母音，用 an。");
+E5("___ ash tree",["a", "an"],"an","ash tree 開頭是「a」的音，是母音，用 an。");
+E5("___ rubber",["a", "an"],"a","rubber 開頭是「r」的音，不是母音，用 a。");
+E5("___ avocado",["a", "an"],"an","avocado 開頭是「a」的音，是母音，用 an。");
+E5("___ fork",["a", "an"],"a","fork 開頭是「f」的音，不是母音，用 a。");
+E5("___ grape",["a", "an"],"a","grape 開頭是「g」的音，不是母音，用 a。");
+E5("___ computer",["a", "an"],"a","computer 開頭是「c」的音，不是母音，用 a。");
+E5("___ teacher",["a", "an"],"a","teacher 開頭是「t」的音，不是母音，用 a。");
+E5("___ goat",["a", "an"],"a","goat 開頭是「g」的音，不是母音，用 a。");
+E5("___ armchair",["a", "an"],"an","armchair 開頭是「a」的音，是母音，用 an。");
+E5("___ interview",["a", "an"],"an","interview 開頭是「i」的音，是母音，用 an。");
+E5("___ address",["a", "an"],"an","address 開頭是「a」的音，是母音，用 an。");
+E5("___ ambulance",["a", "an"],"an","ambulance 開頭是「a」的音，是母音，用 an。");
+E5("___ parachute",["a", "an"],"a","parachute 開頭是「p」的音，不是母音，用 a。");
+E5("___ television",["a", "an"],"a","television 開頭是「t」的音，不是母音，用 a。");
+E5("___ exit",["a", "an"],"an","exit 開頭是「e」的音，是母音，用 an。");
+E5("___ heir",["a", "an"],"an","heir 的 h 不發音，用 an。");
+E5("___ mountain",["a", "an"],"a","mountain 開頭是「m」的音，不是母音，用 a。");
+E5("___ icicle",["a", "an"],"an","icicle 開頭是「i」的音，是母音，用 an。");
+E5("Look at ___ moon! It is so bright.",["the", "a", "an"],"the","月亮只有一個，大家都知道是哪一個，用 the。");
+E5("I have a cat. ___ cat is white.",["The", "A", "An"],"The","前面已經說過那隻貓，第二次說就用 The。");
+E5("Please close ___ door.",["the", "a", "an"],"the","說的是這個房間的那扇門，大家都知道是哪一扇，用 the。");
+E5("There is a bird in the tree. ___ bird is singing.",["The", "A", "An"],"The","前面說過那隻鳥，第二次說就用 The。");
+E5("___ sun is very hot today.",["The", "A", "An"],"The","太陽只有一個，用 The。");
+E5("哪一句是對的？",["I want an apple.", "I want a apple.", "I want an pear.", "I want a egg."],"I want an apple.","apple 用 an、pear 用 a、egg 用 an。");
+E5("哪一句是對的？",["She has an umbrella.", "She has a umbrella.", "She has an bag.", "She has a orange."],"She has an umbrella.","umbrella、orange 母音開頭用 an；bag 用 a。");
+E5("哪一句是對的？",["I am going to get an avocado.", "I am going to get a avocado.", "We put a angel on the tree.", "I have an pencil."],"I am going to get an avocado.","avocado、angel 用 an；pencil 用 a。");
+E5("哪一句是對的？",["We have a spelling test.", "We have an spelling test.", "I have an rubber.", "We don't have a assessment."],"We have a spelling test.","spelling、rubber 用 a；assessment 用 an。");
+E5("哪一句是對的？",["It takes an hour.", "It takes a hour.", "He is a honest man.", "She goes to an university."],"It takes an hour.","hour、honest 的 h 不發音用 an；university 念 you 開頭用 a。");
 
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
@@ -1854,7 +1924,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -2061,6 +2131,8 @@ document.getElementById("wmap").addEventListener("click",e=>{ const b = e.target
 function migrateRes(){ if(!me.res) me.res = {coin:0};
   if(!me.v4){ me.v4 = 1; cfg.tops = MID.slice(); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; }
   // 卓越盃 11/15 要考：只做一次，自動加進範圍
+  // 英文文法 a / an / the：只做一次，自動加進範圍
+  if(!me.ven5){ me.ven5 = 1; if(!cfg.tops.includes("英5")) cfg.tops.push("英5"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.vz3){ me.vz3 = 1; for(const u of ["卓1","卓2","卓3","卓4","卓5","卓6"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   for(const k of Object.keys(me.res)) if(k!=="coin"){ me.res.coin = (me.res.coin||0) + (me.res[k]||0); delete me.res[k]; }
   me.unitDone = me.unitDone||{}; if(me.food===undefined) me.food = 6;
@@ -2444,7 +2516,7 @@ function choose(){
   const cand = pool.filter(q=>!recent.includes(q.id) && !again.some(a=>a.item.id===q.id));
   const noAg = pool.filter(q=>!again.some(a=>a.item.id===q.id));
   let list = cand.length ? cand : noAg.length ? noAg : pool;
-  if(place && place.area==="flow"){ const zz = today()<=ZY_UNTIL && Math.random()<0.4 ? list.filter(q=>q.u[0]==="卓") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃，錯題照樣優先
+  if(place && place.area==="flow"){ const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
     else if(bossOn() && Math.random()<0.25){ const wk = list.filter(isWeak); if(wk.length) list = wk; }   // Boss 在的時候，偶爾從弱點裡出
     const bad = list.filter(wrongOpen);
     if(bad.length) list = bad;   // 錯過、還沒連對的題目一直出，到對為止
