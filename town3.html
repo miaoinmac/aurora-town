@@ -1279,6 +1279,72 @@ E5("哪一句是對的？",["I am going to get an avocado.", "I am going to get 
 E5("哪一句是對的？",["We have a spelling test.", "We have an spelling test.", "I have an rubber.", "We don't have a assessment."],"We have a spelling test.","spelling、rubber 用 a；assessment 用 an。");
 E5("哪一句是對的？",["It takes an hour.", "It takes a hour.", "He is a honest man.", "She goes to an university."],"It takes an hour.","hour、honest 的 h 不發音用 an；university 念 you 開頭用 a。");
 
+// 英文：A+ 雜誌 2026/11/9 火雞俚語。題目全英文、自己出的；詳解用中文；雜誌單字打字背，其餘選擇／排句子
+let E6n = 0; const E6id = () => `英6-${++E6n}`;
+const E6 = (q,opts,exp,ans=opts[0]) => BANK.push({id:E6id(), u:"英6", t:"英文", s:"俚語與文法", q, opts, ans, exp, w:4});
+const E6T = (q,a,exp) => BANK.push({id:E6id(), u:"英6", t:"英文", s:"拼字", spell:true, w:4, make(){ return {q, ans:a, opts:[a], exp}; }});
+const E6R = c => BANK.push({id:E6id(), u:"英6", t:"英文", s:"句子重組", reorder:true, w:4, make(){ return {q:"Put the words in order.", chunks:c, ans:c.join(" "), opts:[c.join(" ")], exp:c.join(" ")}; }});
+E6("What does \"go cold turkey\" mean?",["stop a bad habit right away", "eat cold food", "cook a turkey", "feel very cold"],"go cold turkey＝一下子戒掉某個習慣。");
+E6("What does \"talk turkey\" mean?",["say what you really think", "talk about birds", "talk very quietly", "tell a funny story"],"talk turkey＝有話直說。");
+E6("Amy: Let's talk turkey. Your song is too long.\nWhat is Amy doing?",["saying what she thinks", "singing a song", "eating turkey", "going home"],"Let's talk turkey＝我們有話直說吧。");
+E6("Ann: Do you want some chips?\nJoe: No, thanks. I went cold turkey on snacks.\nWhy doesn't Joe eat chips?",["He stopped eating snacks.", "He is very hungry.", "He wants turkey.", "The chips are cold."],"went cold turkey on snacks＝把零食一下子戒掉。");
+E6("Which one means \"stop doing it\"?",["give up", "wake up", "sit down", "clean up"],"give up＝戒除、放棄。");
+E6("Mom says I should ___ sweet drinks. Then I won't drink them.",["cut out", "look at", "put on", "come in"],"cut out＝戒除；不再吃或喝。");
+E6("Tim says, \"Um... um...\"\nMom says, \"Just ___!\"",["spit it out", "sit down", "stand up", "go to bed"],"spit it out＝有話快說。");
+E6("Which one means \"say what you think\"?",["be blunt", "be nice", "be afraid", "be late"],"be blunt with 某人＝對某人有話直說。");
+E6("You are drinking milk? That is new for you!\nHere, \"new\" means ___.",["different from before", "very old", "very big", "very good"],"new 也可以指「和以往不同的」。");
+E6("Last week, I ___ cold turkey on cookies.",["went", "go", "goes", "going"],"Last week 是過去，go 要變成 went。");
+E6("Yesterday, Mia ___ up for the art club.",["signed", "sign", "signs", "signing"],"Yesterday 是過去，sign 加 ed。");
+E6("Nora ___ jogging every day.",["goes", "go", "going", "went"],"every day 是習慣；Nora 是單數，用 goes。");
+E6("This game ___ very hard.",["is", "am", "are", "be"],"This game 是單數，用 is。");
+E6("These books ___ very interesting.",["are", "is", "am", "be"],"These books 是複數，用 are。");
+E6("Most students ___ break time.",["like", "likes", "liking", "is like"],"Most students 是複數，動詞不加 s。");
+E6("Most of my friends ___ dogs.",["have", "has", "having", "is have"],"Most of my friends 是複數，用 have。");
+E6("Many kids sign up ___ the soccer club.",["for", "at", "on", "in"],"固定說法：sign up for。");
+E6("I get up ___ 7:00 every day.",["at", "in", "on", "during"],"幾點幾分用 at。");
+E6("The bus comes ___ 8:15.",["at", "in", "on", "during"],"幾點幾分用 at。");
+E6("It often rains ___ June.",["in", "at", "on", "during"],"月份用 in。");
+E6("My sister was born ___ 2019.",["in", "at", "on", "during"],"年份用 in。");
+E6("It is very cold here ___ winter.",["in", "at", "on", "during"],"季節用 in。");
+E6("I drink water ___ the morning.",["in", "at", "on", "during"],"早上、下午這種時段用 in。");
+E6("I have piano class ___ Friday.",["on", "in", "at", "during"],"星期幾用 on。");
+E6("We have a party ___ my birthday.",["on", "in", "at", "during"],"特定的日子用 on。");
+E6("We went to Hualien ___ the summer vacation.",["during", "at", "on", "by"],"一段時間之內用 during。");
+E6("___ children like ice cream.",["Most","Most of"],"沒有特定範圍：most＋名詞。","Most");
+E6("___ people have a phone.",["Most","Most of"],"沒有特定範圍：most＋名詞。","Most");
+E6("___ my classmates can swim.",["Most","Most of"],"有特定範圍（我的同學）：most of＋名詞。","Most of");
+E6("___ Mr. Lin's students did well.",["Most","Most of"],"有特定範圍（林老師的學生）：most of＋名詞。","Most of");
+E6T("Type the missing word.\nThis puzzle is very ___. I can't finish it.","hard","hard 困難的");
+E6T("Type the missing word.\nMath is ___ for me, but I try.","hard","hard 困難的");
+E6T("Type the missing word.\nIt is raining, but the children ___ the race. They don't stop.","continue","continue 繼續");
+E6T("Type the missing word.\nPlease ___ reading. Don't stop.","continue","continue 繼續");
+E6T("Type the missing word.\nThis story is so ___! I want to read it again.","interesting","interesting 有趣的");
+E6T("Type the missing word.\nThe movie is not boring. It is ___.","interesting","interesting 有趣的");
+E6T("Type the missing word.\nI like to eat potato ___.","chips","chip 洋芋片，這裡用複數 chips");
+E6T("Type the missing word.\nThese salty potato ___ are yummy.","chips","chip 洋芋片，這裡用複數 chips");
+E6T("Type the missing word.\nThis is not old. It is ___.","new","new 新的；也可指和以往不同的");
+E6T("Type the missing word.\nI have a ___ bike. I got it today.","new","new 新的");
+E6T("Type the missing word.\n\"Talk turkey\" is an ___.","idiom","idiom 慣用語");
+E6T("Type the missing word.\nA big bird at the dinner table is a ___.","turkey","turkey 火雞");
+E6("Let's ___ turkey. We don't have much time.",["talk", "eat", "cook", "buy"],"talk turkey＝有話直說。");
+E6("Dad wants to stop eating candy now.\nHe will go cold ___.",["turkey", "chicken", "fish", "soup"],"慣用語固定用 turkey。");
+E6("We play ball at ___ time between classes.",["break", "hard", "new", "sign"],"break time＝課間休息。");
+E6("I want to ___ up for the art class.",["sign", "stand", "wake", "give"],"sign up for＝報名參加。");
+E6("Please don't talk ___ the movie.",["during", "at", "on", "in"],"一段時間之內用 during。");
+E6("Which one matches?\nstop a bad habit right away",["go cold turkey", "talk turkey", "spit it out", "break time"],"go cold turkey：立刻戒掉壞習慣。");
+E6("Which one matches?\nsay what you really think",["talk turkey", "go cold turkey", "give up", "cut out"],"talk turkey：有話直說。");
+E6("Which one matches?\nstop doing something",["give up", "talk turkey", "spit it out", "break time"],"give up：戒除；放棄。");
+E6("Which one matches?\nstop eating or drinking something",["cut out", "talk turkey", "spit it out", "break time"],"cut out：戒除；不再吃喝。");
+E6("Which one matches?\nSay it now! Say it fast!",["spit it out", "go cold turkey", "talk turkey", "give up"],"spit it out：有話快說。");
+E6("Which one matches?\ntime to rest between classes",["break time", "go cold turkey", "talk turkey", "give up"],"break time：課間休息。");
+E6("Which one matches?\njoin a class or a club",["sign up for", "go cold turkey", "talk turkey", "give up"],"sign up for：報名參加。");
+E6R(["I", "went cold turkey", "on", "candy."]);
+E6R(["Let's", "talk", "turkey."]);
+E6R(["Most", "students", "like", "break time."]);
+E6R(["She", "signed up for", "the art club."]);
+E6R(["We", "have a party", "on", "Friday."]);
+E6R(["Most of", "my friends", "like", "dogs."]);
+
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 const one = arr => arr[RI(0,arr.length-1)];
@@ -2097,7 +2163,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -2306,6 +2372,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   // 卓越盃 11/15 要考：只做一次，自動加進範圍
   // 英文文法 a / an / the：只做一次，自動加進範圍
   if(!me.ven5){ me.ven5 = 1; if(!cfg.tops.includes("英5")) cfg.tops.push("英5"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
+  // 11/9 雜誌：只做一次，自動加進範圍（家長要求）
+  if(!me.ven6){ me.ven6 = 1; if(!cfg.tops.includes("英6")) cfg.tops.push("英6"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
   if(!me.vns && today()>ZY_UNTIL){ me.vns = 1; for(const u of ["社1","社2","自1","自2"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.vz3){ me.vz3 = 1; for(const u of ["卓1","卓2","卓3","卓4","卓5","卓6"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
