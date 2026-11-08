@@ -1457,6 +1457,15 @@ function welcomeBack(){ const d = today(); if(!me.hero || me.welDay===d) return;
   document.getElementById("welGift").textContent = `🍎×${apples}` + (salad?` 🥗×${salad}`:"");
   document.getElementById("welOk").onclick = ()=>{ sfx("unlock"); burst("❤️"); document.getElementById("welcome").classList.remove("on"); refreshMap(); };
   document.getElementById("welcome").classList.add("on"); sfx("level"); if(typeof speak==="function") speak(`${hero().name}，你回來了，大家好想你`); }
+// 回歸禮包：只送一次（11/8 起），順便告訴她經驗值加倍了
+function backGift(){ if(me.vback || !me.hero) return; const w = document.getElementById("welcome"), ok = document.getElementById("welOk");
+  if(w.classList.contains("on")){ const f = ok.onclick; ok.onclick = ()=>{ if(f) f(); setTimeout(backGift, 400); }; return; }
+  me.vback = 1; me.res.coin = (me.res.coin||0)+2000; giveItem("lens",2); giveItem("bomb",2); giveItem("sh",2); saveMe();
+  document.getElementById("welPpl").innerHTML = shuffle(here().slice()).slice(0,6).map(x=>`<img src="${IMG(x.id)}" alt="">`).join("");
+  document.getElementById("welTxt").textContent = `🎁 回歸禮包！從今天起，答對一題經驗值加倍！`;
+  document.getElementById("welGift").innerHTML = `🪙 +2000<br>🔍💥🛡️ 各 ×2`;
+  ok.onclick = ()=>{ sfx("unlock"); burst("🎉"); w.classList.remove("on"); refreshMap(); if(typeof bossDraw==="function") bossDraw(); };
+  w.classList.add("on"); sfx("level"); if(typeof speak==="function") speak(`回歸禮包！從今天起，答對一題經驗值加倍`); }
 // 比較帳號和這台，誰比較新就用誰
 async function cloudSync(){
   if(!cloudDb) return;
@@ -1471,7 +1480,7 @@ async function cloudSync(){
     const localWins = me.hero && !barely && (localT ? localT>cloudT : (me.xp||0) > ((d.me||{}).xp||0));
     if(localWins) await cloudPush();
     else { if(cloudT!==localT) cloudApply(d); cloudMark("ok"); }
-    openChineseMath(); dropAngle(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack();
+    openChineseMath(); dropAngle(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack(); backGift();
   }catch(e){ cloudMark("local"); }
 }
 // 雲端存檔（Firestore）：密碼藏在連結 #k=… 第一次打開後記在這台
@@ -1743,6 +1752,8 @@ let wbRaw = {emma:0, luna:0}, wbWk = "", wbSend = 0, wbTimer = null, wbBusy = fa
 const wbOn = () => !!me.fam;
 const wbDmg = k => Math.min(WB_CAP, (wbRaw[k]||0)*WB_RATE[k]);
 const wbTotal = () => wbDmg("emma") + wbDmg("luna");
+// 這週的努力：每週一歸零，不設上限，三年級一題算 2
+const wbWeekPts = k => (wbRaw[k]||0)*WB_RATE[k];
 async function wbLoad(){ if(!wbOn()) return false;
   try{ const r = await fetch(`${WB_API}/saves/${me.fam}`, {cache:"no-store"}); if(!r.ok && r.status!==404) return false;
     const wk = wbWeek(), f = r.ok ? ((await r.json()).fields||{})[wk] : null, m = (f && f.mapValue && f.mapValue.fields) || {};
@@ -1752,9 +1763,10 @@ async function wbFlush(){ if(wbBusy || !wbSend || !wbOn()) return; wbBusy = true
     if(!r.ok) wbSend += n; }catch(e){ wbSend += n; }
   wbBusy = false; await wbLoad(); }
 function wbHit(){ if(!wbOn() || !wbWk) return; if(wbWk!==wbWeek()){ wbLoad(); return; } if(wbDmg(ME_KID)>=WB_CAP) return; wbRaw[ME_KID]++; wbSend++; wbPill(); wbCheck(); clearTimeout(wbTimer); wbTimer = setTimeout(wbFlush, 2500); }
-function wbPill(){ const el = document.getElementById("wbPill"); if(!el) return; if(!wbOn() || !wbWk){ el.style.display = "none"; return; } el.style.display = "inline-flex"; el.textContent = wbTotal()>=WB_HP ? "🌍 ✅" : `🌍 ${wbTotal()}/${WB_HP}`; }
+function wbPill(){ const el = document.getElementById("wbPill"); if(!el) return; if(!wbOn() || !wbWk){ el.style.display = "none"; return; } el.style.display = "inline-flex"; const a = wbWeekPts("luna"), b = wbWeekPts("emma"); el.textContent = (wbTotal()>=WB_HP ? "🌍 ✅" : `🌍 ${wbTotal()}/${WB_HP}`) + `　本週 我${a}${a>b?"👑":""}：妹${b}${b>a?"👑":""}`; }
+const wbRace = () => { const a = wbWeekPts("luna"), b = wbWeekPts("emma"); return `<div style="width:100%;text-align:center;font-weight:900;margin-top:4px">本週努力榜（每週一重新開始）<br>我 ${a}${a>b?" 👑":""}　vs　妹妹 ${b}${b>a?" 👑":""}</div>`; };
 const wbBars = () => ["emma","luna"].sort(k=>k===ME_KID?-1:1).map(k=>`<div style="width:100%;text-align:left;font-weight:800">${WB_WHO[k]}　${wbDmg(k)}/${WB_CAP}<div class="bosshp"><i style="width:${wbDmg(k)/WB_CAP*100}%"></i></div></div>`).join("");
-function wbShow(head, say, btn, cb, voice){ bossOverlay(head, null, false, "暗影霧王", say, `<div style="width:100%;display:flex;flex-direction:column;gap:8px">${wbBars()}</div>`, btn, cb, voice); document.getElementById("bossPic").innerHTML = `🌑<img src="art/wboss.webp" alt="" onerror="this.remove()">`; }
+function wbShow(head, say, btn, cb, voice){ bossOverlay(head, null, false, "暗影霧王", say, `<div style="width:100%;display:flex;flex-direction:column;gap:8px">${wbBars()}${wbRace()}</div>`, btn, cb, voice); document.getElementById("bossPic").innerHTML = `🌑<img src="art/wboss.webp" alt="" onerror="this.remove()">`; }
 // 每天第一次答題前看一下這週的世界 Boss
 function wbIntro(){ if(!wbOn() || me.wbDay===today()) return false; me.wbDay = today(); saveMe();
   wbLoad().then(ok=>{ if(!ok) return startFlow(); const other = ME_KID==="emma" ? "姐姐" : "妹妹", done = wbTotal()>=WB_HP;
@@ -2264,7 +2276,8 @@ document.getElementById("openTown").onclick = ()=>toTown();
 function reward(q){
   const msgs = []; rwSfx = "";
   const lv0 = lvOf(me.xp), bl0 = BADGES.map(badgeLv);
-  const gain = 10 + (streak>=3 ? 5 : 0) + (curAg ? 5 : 0) + blv("library")*3 + pBonus("xp");
+  // 三年級題目比較難，經驗值加倍（11/8 起）
+  const gain = (10 + (streak>=3 ? 5 : 0) + (curAg ? 5 : 0) + blv("library")*3 + pBonus("xp")) * 2;
   const earnMsg = earn(q);
   me.xp += gain; sess.xp += gain;
   const d = today(); me.day[d] = (me.day[d]||0)+1;
@@ -2289,7 +2302,7 @@ function reward(q){
   const every = 5 - blv("vault");
   if(sess.right % every === 0){ me.chests++; chest = true; }
   saveMe();
-  return `<div class="rw">+${gain} 經驗值　${earnMsg}${msgs.length?"<br>"+msgs.join("<br>"):""}</div>` + (chest ? `<button class="chestbtn" id="chestBtn">發現補給箱！打開看看</button>` : "");
+  return `<div class="rw">+${gain} 經驗值（×2）　${earnMsg}${msgs.length?"<br>"+msgs.join("<br>"):""}</div>` + (chest ? `<button class="chestbtn" id="chestBtn">發現補給箱！打開看看</button>` : "");
 }
 
 // 寶箱：普通給一種材料，稀有給兩種，傳說四種都給很多
