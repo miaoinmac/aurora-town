@@ -2133,6 +2133,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   // 卓越盃 11/15 要考：只做一次，自動加進範圍
   // 英文文法 a / an / the：只做一次，自動加進範圍
   if(!me.ven5){ me.ven5 = 1; if(!cfg.tops.includes("英5")) cfg.tops.push("英5"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
+  // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
+  if(!me.vns && today()>ZY_UNTIL){ me.vns = 1; for(const u of ["社1","社2","自1","自2"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.vz3){ me.vz3 = 1; for(const u of ["卓1","卓2","卓3","卓4","卓5","卓6"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   for(const k of Object.keys(me.res)) if(k!=="coin"){ me.res.coin = (me.res.coin||0) + (me.res[k]||0); delete me.res[k]; }
   me.unitDone = me.unitDone||{}; if(me.food===undefined) me.food = 6;
