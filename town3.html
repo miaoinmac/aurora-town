@@ -1892,6 +1892,9 @@ function msnTick(){ const m = msnNow(); if(!m) return ""; m.n++; msnPill(); if(m
   setTimeout(()=>msnRescue(p, fogFrom), 650); return `<div class="lucky">🌟 ${done?`救出 ${pOf(p).n}！`:"霧變少了！"} +${MSN_COIN}</div>`; }
 // 自然語音：沒有錄音的句子用裝置內建語音（GitHub 版會換成錄好的聲音）
 let enEl = null;
+// 打字題的英文發音：有錄好的就播，沒有就用裝置的英文語音
+function sayWordTts(w){ try{ if(!window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(w); u.lang = "en-US"; u.rate = .85; speechSynthesis.speak(u); }catch(e){} }
+function sayWord(w){ try{ if(window.speechSynthesis) speechSynthesis.cancel(); enEl = enEl || new Audio(); enEl.pause(); enEl.onended = null; enEl.onerror = ()=>{ enEl.onerror = null; sayWordTts(w); }; enEl.src = "voice/luna/en/"+w.toLowerCase().replace(/ /g,"-")+".mp3"; const r = enEl.play(); if(r && r.catch) r.catch(()=>{}); }catch(e){ sayWordTts(w); } }
 const VOICE = new Set(["02c4faab","032ef6e6","03f6d6db","0645d9a8","06b32e36","09f7ca04","0b9a3a81","0e354600","1467b106","164e9af6","17dc5c89","17f8437b","1e4ac4aa","2690e232","29a93806","2ad05d5e","354cba21","3ba08782","4ad95c9c","4dbae571","4e3f2be0","539532b9","5b6a88e7","5d5ccd6d","5f2dffc4","5f35b4ba","60b35cb7","62170f02","64127043","66027c32","68e090c1","6cc66a12","762c2213","7c30df57","7deba20e","824b1878","837b6e49","848cfa4c","85bb1a4d","8aa36547","8b13bf15","8deb45ad","8df3f39f","8e8cf2bc","8fffc506","9077035f","91927910","961652e1","962e8e18","9fc45e7a","a70da22d","ac14ea45","ac8750f8","ad5078c9","adc75767","b22225a7","b249cfa5","b27157eb","b3caca02","b5432177","b9c2a71c","bdcada54","c3152b99","c3249994","c5e50b10","c75c72fa","d4842302","dc40d39a","dd9f9931","df5dfb24","dfbf8953","dffbd8e9","e1de6b77","ebcba100","ee562233","efc2761f","efe4f1dc","f9c0ee97","fab7b7cb","fe22dcde"]);
 const vClean = t => String(t).replace(/<[^>]+>/g,"").replace(/[\u{E0100}-\u{E01EF}]/gu,"").replace("💡","").trim();
 const vKey = t => { let h = 0x811c9dc5; for(let i=0;i<t.length;i++){ h ^= t.charCodeAt(i); h = Math.imul(h,0x01000193); } return (h>>>0).toString(16).padStart(8,"0"); };
@@ -2798,10 +2801,11 @@ function nextQ(){
     });
   } else if(cur.spell){
     const len = cur.ans.length;
-    box.innerHTML = `<div class="spellb"><div class="slots">${[...cur.ans].map(c=>c===" "?'<i class="sp"></i>':"<i></i>").join("")}</div>
+    box.innerHTML = `<div class="spellb"><button class="go" id="spSay" type="button">🔊 聽發音</button><div class="slots">${[...cur.ans].map(c=>c===" "?'<i class="sp"></i>':"<i></i>").join("")}</div>
       <input id="spIn" class="spin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="在這裡打字" maxlength="${len+6}">
       <button class="go" id="spOk">確定</button></div>`;
     const inp = document.getElementById("spIn"), submit = ()=>{ const v = inp.value; if(!v.trim() || document.getElementById("nextBtn")) return; inp.disabled = true; document.getElementById("spOk").style.display = "none"; answer(normEn(v)===normEn(cur.ans) ? cur.ans : v.trim()); };
+    document.getElementById("spSay").onclick = ()=>{ sayWord(cur.ans); inp.focus(); }; sayWord(cur.ans);
     document.getElementById("spOk").onclick = submit;
     inp.onkeydown = e=>{ if(e.key==="Enter") submit(); };
     setTimeout(()=>inp.focus(), 60);
