@@ -2726,11 +2726,13 @@ function startGame(list){
   show("play"); nextQ();
 }
 
+const EN_AFTER = new Date(2026,10,9,18,0).getTime();   // 11/9 下午 6 點後才出英文
 let lastK = "數";   // 上一題是英文還是數學，下一題換另一科
 function choose(){
   const cand = pool.filter(q=>!recent.includes(q.id) && !again.some(a=>a.item.id===q.id));
   const noAg = pool.filter(q=>!again.some(a=>a.item.id===q.id));
   let list = cand.length ? cand : noAg.length ? noAg : pool;
+  if(Date.now()<EN_AFTER){ const noEn = list.filter(q=>q.u[0]!=="英"); if(noEn.length) list = noEn; }   // 家長回家前先只出卓越盃
   if(place && place.area==="flow"){ const isE6 = q=>q.u[0]==="英", isM6 = q=>q.u[0]==="卓"||q.u[0]==="數", want = lastK==="英" ? isM6 : isE6, alt = list.filter(want); if(alt.length && list.some(q=>isE6(q)||isM6(q))) list = alt;   // 數學、英文一題一題輪流
     const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
     const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
