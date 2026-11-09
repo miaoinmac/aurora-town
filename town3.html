@@ -2609,11 +2609,11 @@ function activeUnits(){ return allSubs().flatMap(x=>x.units.map(v=>v[0])).filter
 function flowPool(){ const list = BANK.filter(q=>inScope(q,cfg.tops) && !known(q) && !doneToday(q) && (!q.rare || (stats[q.id]||{}).w>0));   // 考前不鎖單元，範圍內都會出
   return list.length ? list : BANK.filter(q=>inScope(q,cfg.tops) && !q.rare); }
 // 全部題目都熟練、還沒考過的第一個單元（只有數學、自然要考）
-function examDue(){ for(const x of allSubs()) for(const [u] of x.units){ if(!STRICT(u) || !cfg.tops.includes(u) || unitOk(u)) continue;
+function examDue(){ for(const x of allSubs()) for(const [u] of x.units){ if((u[0]==="英" && Date.now()<EN_AFTER) || !STRICT(u) || !cfg.tops.includes(u) || unitOk(u)) continue;
     const all = BANK.filter(q=>q.u===u && !q.rare); if(all.length && all.every(known)) return u; }
   return null; }
 // 通過 3 天、再 7 天後抽考
-function recheckDue(){ const d0 = new Date(today()); for(const [u,d] of Object.entries(me.unitDone||{})){ if(!STRICT(u) || !cfg.tops.includes(u) || !d || typeof d!=="object" || d.rc>=2) continue;
+function recheckDue(){ const d0 = new Date(today()); for(const [u,d] of Object.entries(me.unitDone||{})){ if((u[0]==="英" && Date.now()<EN_AFTER) || !STRICT(u) || !cfg.tops.includes(u) || !d || typeof d!=="object" || d.rc>=2) continue;
     if((d0-new Date(d.at))/864e5 >= (d.rc?7:3)) return u; }
   return null; }
 function startExam(u,recheck){ const all = BANK.filter(q=>q.u===u && !q.rare), list = shuffle(all.slice()).slice(0,10), mk = all.filter(q=>q.make);
@@ -2762,6 +2762,7 @@ function renderTrail(len, baseDone){
 function nextQ(){
   const len = onlyList ? onlyList.length : (place&&place.n) || cfg.len;
   if(lives<=0) return endGame();
+  if(Date.now()<EN_AFTER && place && place.area==="flow") again = again.filter(a=>a.item.u[0]!=="英");
   if(place && place.area==="flow" && !again.length){ const u = examDue(); if(u) return startExam(u); }
   const baseDone = len<888 && base_n>=len;
   if(baseDone && !again.length) return endGame();
