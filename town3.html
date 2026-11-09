@@ -1929,7 +1929,7 @@ function bossWin(){ const b = bossOf(), i = b.i, n = BOSSES[i%BOSSES.length][0],
 function useLens(){ const x = itemsOf(); if(!x.lens || !cur) return; const wrong = [...document.querySelectorAll(".opt:not(.dim)")].filter(b=>b.dataset.v!==cur.ans); if(wrong.length<2) return; x.lens--; shuffle(wrong).slice(0,Math.ceil(wrong.length/2)).forEach(b=>{ b.classList.add("dim"); b.disabled = true; }); sfx("unlock"); saveMe(); bossDraw(); }
 function useBomb(){ const x = itemsOf(); if(!x.bomb || !bossOn()) return; x.bomb--; burst("💥"); sfx("streak"); bossHit(5); saveMe(); bossDraw(); }
 // 金色寶箱：答對時偶爾出現，60 題內保底一個
-function goldTick(){ me.gcN = (me.gcN||0)+1; if(me.gcN<60 && Math.random()>=0.025) return; me.gcN = 0; setTimeout(goldOpen,700); }
+function goldTick(){ me.gcN = (me.gcN||0)+1; if(me.gcN<20 && Math.random()>=0.08) return; me.gcN = 0; setTimeout(goldOpen,700); }
 function goldOpen(){ bossOverlay("✨ 金色寶箱 ✨", null, false, "", "", "", "🎁 開！", ()=>{ const r = Math.random(); let say, em; if(r<.4){ const v = 200+Math.floor(Math.random()*7)*100; addCoin(v); say = `+${v} 🪙`; em = "🪙"; }
     else if(r<.7){ const k = ["lens","bomb","sh"][Math.floor(Math.random()*3)]; giveItem(k,2); em = {lens:"🔍",bomb:"💥",sh:"🛡️"}[k]; say = `${em} ×2`; }
     else { const p = msnPick(); if(p && msnStep(p)){ const x = pOf(p); em = `<img src="${IMG(p)}" alt="">`; say = `🌫️ ${x.n} ${(me.rsc||{})[p]||0}/${MSN_STEPS}`; if(me.people.includes(p)) say = `🚚 ${x.n}`; } else { addCoin(300); em = "🪙"; say = "+300 🪙"; } }
@@ -1975,7 +1975,7 @@ function skBurst(){ const hit = [3,5,10,15,20].includes(streak) || (streak>20 &&
   burst(big?"🎆":mid?"🔥":"⭐"); if(big) rwSfx = "level"; else rwSfx = rwSfx || "streak"; }
 function earn(q){
   const bonus = (blv("lumber")+blv("mine")+blv("kiln"))*0.05 + pBonus("pct");
-  const c = Math.round(15 * (1+bonus) * skMul() * (curAg ? 1.5 : 1) + blv("farm")*2 + pBonus("coin"));
+  const c = Math.round(30 * (1+bonus) * skMul() * (curAg ? 1.5 : 1) + blv("farm")*2 + pBonus("coin"));
   me.res.coin = (me.res.coin||0) + c; me.got = me.got || {}; me.got.coin = (me.got.coin||0) + c; sess.res.coin = (sess.res.coin||0) + c;
   flyRes("coin"); popNum(c);
   let msg = `+${c} ${ri("coin")}` + helpStrip();
@@ -1983,9 +1983,9 @@ function earn(q){
   { const ti = TOWN_T.filter(t=>fame()>=t[0]).length; if(me.ti===undefined) me.ti = ti; else if(ti>me.ti){ me.ti = ti; const v = ti*100, pk = FAME.find(f=>f[0]===TOWN_T[ti-1][0]); addCoin(v); msg += `<div class="lucky">🎉 小鎮升格：${townTitle()}！金幣 +${v}${pk?`<br>${pk[1]} 新能力：${pk[2]}`:""}</div>`; burst("🎉"); rwSfx = rwSfx || "level"; } }
   if(perk(200) && me.p200!==today()){ me.p200 = today(); addCoin(300); msg += `<div class="lucky">⭐ 今天第一題！金幣 +300</div>`; }
   // 幸運金幣：偶爾多一筆，不知道什麼時候會來
-  if(Math.random()<(perk(40)?0.15:0.1)){ const v = Math.random()<0.15 ? 100 : 30; addCoin(v); msg += `<div class="lucky">🍀 幸運金幣 +${v}！</div>`; burst("🍀"); rwSfx = rwSfx || "unlock"; }
+  if(Math.random()<(perk(40)?0.3:0.25)){ const v = Math.random()<0.2 ? 200 : 60; addCoin(v); msg += `<div class="lucky">🍀 幸運金幣 +${v}！</div>`; burst("🍀"); rwSfx = rwSfx || "unlock"; }
   // 連對獎勵：每 5 題一次，越連越多
-  if(streak>0 && streak%5===0){ const v = Math.min(streak,20)*5; addCoin(v); msg += `<div class="lucky">🔥 ${streak} 連對！獎勵 +${v}</div>`; burst("⭐"); if(perk(15)) burst("🎆"); rwSfx = rwSfx || "unlock"; }
+  if(streak>0 && streak%3===0){ const v = Math.min(streak,30)*10; addCoin(v); msg += `<div class="lucky">🔥 ${streak} 連對！獎勵 +${v}</div>`; burst("⭐"); if(perk(15)) burst("🎆"); rwSfx = rwSfx || "unlock"; }
   // 答題時居民也在工作，回小鎮點他們收金幣
   { const ppl = here().filter(awake); if(ppl.length){ const x = ppl[Math.floor(Math.random()*ppl.length)]; me.hv = me.hv||{}; me.hv[x.id] = (me.hv[x.id]||0) + (happy(x)?10:6)*(perk(70)?2:1); } }
   if(me.build){
@@ -2476,6 +2476,7 @@ function reward(q){
   const earnMsg = earn(q);
   me.xp += gain; sess.xp += gain;
   const d = today(); me.day[d] = (me.day[d]||0)+1;
+  if(me.day[d]%10===0){ const k = ["lens","bomb","sh"][Math.floor(Math.random()*3)]; addCoin(150); giveItem(k,1); msgs.push(`<span class="new">🎁 今天答對 ${me.day[d]} 題！金幣 +150、${({lens:"🔍",bomb:"💥",sh:"🛡️"})[k]} ×1</span>`); rwSfx = rwSfx || "unlock"; }
   if(me.day[d]===GOAL) msgs.push(`<span class="new">✅ 今日任務完成！答對 ${GOAL} 題</span>`);
   const cat = q.plant ? "植物" : q.t==="植物" ? "構造" : q.t==="社會" ? q.s : q.t;
   me.cat[cat] = (me.cat[cat]||0)+1;
@@ -2722,11 +2723,13 @@ function startGame(list){
   show("play"); nextQ();
 }
 
+let lastK = "數";   // 上一題是英文還是數學，下一題換另一科
 function choose(){
   const cand = pool.filter(q=>!recent.includes(q.id) && !again.some(a=>a.item.id===q.id));
   const noAg = pool.filter(q=>!again.some(a=>a.item.id===q.id));
   let list = cand.length ? cand : noAg.length ? noAg : pool;
-  if(place && place.area==="flow"){ const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
+  if(place && place.area==="flow"){ const isE6 = q=>q.u[0]==="英", isM6 = q=>q.u[0]==="卓"||q.u[0]==="數", want = lastK==="英" ? isM6 : isE6, alt = list.filter(want); if(alt.length && list.some(q=>isE6(q)||isM6(q))) list = alt;   // 數學、英文一題一題輪流
+    const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
     const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
     else if(bossOn() && Math.random()<0.25){ const wk = list.filter(isWeak); if(wk.length) list = wk; }   // Boss 在的時候，偶爾從弱點裡出
     const bad = list.filter(wrongOpen);
@@ -2766,6 +2769,7 @@ function nextQ(){
   curAg = again.find(a=>a.at<=n) || (baseDone||onlyAg ? (again.find(a=>a.item!==cur) || again[0]) : null);
   if(curAg) cur = curAg.item;
   else { cur = onlyList ? onlyList[base_n] : choose(); base_n++; }
+  lastK = cur.u[0]==="英" ? "英" : "數";
   if(cur.make && !cur.made){ const m = cur.make(); cur = Object.assign({}, cur, m, {ans:m.keepAns ? m.ans : m.opts[0], made:true}); }
   { const L = LANDS.find(l=>l.k===cur.u[0]) || LANDS[0]; const bg = cur.u[0]==="自"?"bg_forest":L.bg; if(place && place.area==="flow"){ const url = `url("${IMG(bg)}")`; document.getElementById("qbg").style.backgroundImage = url; document.getElementById("endBg").style.backgroundImage = url; } }
   recent.push(cur.id); if(recent.length>Math.min(8, Math.floor(pool.length/2))) recent.shift();
@@ -2874,8 +2878,10 @@ function answer(o){
   } else if(curAg){
     curAg.left--;
     if(curAg.left>0){ curAg.at=n+cfg.gap; agMsg = `👍 記起來了！隔 ${cfg.gap} 題再確認一次`; }
-    else { again = again.filter(a=>a!==curAg); agMsg = "⭐ 這題真的記住了！"; }
+    else { again = again.filter(a=>a!==curAg); addCoin(80); agMsg = "⭐ 這題真的記住了！克服難題獎：金幣 +80"; }
   }
+  if(!ex && !ok){ addCoin(15); agMsg += "<br>💪 有試就有獎勵：金幣 +15"; }
+  if(!ex && ok && cur.spell){ addCoin(50); agMsg += (agMsg?"<br>":"")+"⌨️ 單字拼對了！金幣 +50"; }
   if(shielded) agMsg = "🛡️ 連對保護！連對沒有斷。<br>"+agMsg;
   const rw = ok ? reward(cur) : ""; if(ok){ skBurst(); goldTick(); wbHit(); if(bossOn()) bossHit((isWeak(cur)||curAg ? 3 : 1) + (streak>=5 ? 1 : 0)); }
   if(ok) sfx(rwSfx || (curAg && !again.includes(curAg) ? "unlock" : streak>=3 ? "streak" : "right"));
