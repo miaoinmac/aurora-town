@@ -2726,7 +2726,8 @@ function choose(){
   const cand = pool.filter(q=>!recent.includes(q.id) && !again.some(a=>a.item.id===q.id));
   const noAg = pool.filter(q=>!again.some(a=>a.item.id===q.id));
   let list = cand.length ? cand : noAg.length ? noAg : pool;
-  if(place && place.area==="flow"){ const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
+  if(place && place.area==="flow"){ const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
+    const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
     else if(bossOn() && Math.random()<0.25){ const wk = list.filter(isWeak); if(wk.length) list = wk; }   // Boss 在的時候，偶爾從弱點裡出
     const bad = list.filter(wrongOpen);
     if(bad.length) list = bad;   // 錯過、還沒連對的題目一直出，到對為止
