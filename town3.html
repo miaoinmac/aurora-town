@@ -714,6 +714,13 @@
 </style>
 <div class="ov" id="msnOv" style="z-index:96"><div class="ovbox hpbox msnbox"><div id="msnHead" style="font-size:24px;font-weight:900"></div><div class="msnpic" id="msnPic"><img id="msnImg" alt=""><i class="msnfog" id="msnFog"></i></div><div class="msnname" id="msnName"></div><div class="msnbar"><i id="msnBar"></i></div><div id="msnCount" style="font-size:15px;opacity:.85"></div><div class="msnitems" id="msnItems"></div><div class="msnsay" id="msnSay"></div><button class="go" id="msnGo"></button></div></div>
 <div class="ov" id="bossOv" style="z-index:97"><div class="ovbox hpbox msnbox"><div id="bossHead" style="font-size:25px;font-weight:900"></div><div class="bigpic" id="bossPic"></div><div class="msnname" id="bossName"></div><div class="msnsay" id="bossSay"></div><div class="msnitems" id="bossItems"></div><button class="go" id="bossGo"></button></div></div>
+<div class="ov" id="brkOv" style="z-index:130"><div class="ovbox">
+  <div style="font-size:48px">🌿😌🌿</div>
+  <div style="font-size:22px;font-weight:900;color:#ffe2ae;margin:8px 0">玩 25 分鐘了，休息一下！</div>
+  <div style="font-size:17px;font-weight:800;color:#fff">起來走一走、喝口水、看看遠方</div>
+  <div id="brkLeft" style="font-size:52px;font-weight:900;color:#fff;margin:12px 0 4px">5:00</div>
+  <div style="font-size:15px;color:#fff">時間到會自動回到遊戲，進度都還在</div>
+</div></div>
 <div class="ov" id="welcome"><div class="ovbox">
   <div style="font-size:24px;font-weight:900;color:#ffe2ae">🎉 ❤️ 🎉</div>
   <div id="welPpl" class="welp"></div>
@@ -2823,6 +2830,7 @@ function renderTrail(len, baseDone){
   }).join("");
 }
 function nextQ(){
+  if(brkDue()){ brkGo(nextQ); return; }   // 休息時間到：答完這題才休息，不打斷作答
   const len = onlyList ? onlyList.length : (place&&place.n) || cfg.len;
   if(lives<=0) return endGame();
   if(Date.now()<EN_AFTER && place && place.area==="flow") again = again.filter(a=>a.item.u[0]!=="英");
@@ -3087,6 +3095,25 @@ toTown();
 // 先看帳號裡有沒有進度，再決定要不要從開場開始（最多等 5 秒）
 let cloudDone = false;
 const afterCloud = ()=>{ if(cloudDone) return; cloudDone = true; if(!me.hero) startStory(); else if(!me.tut4) startTut(); };
+// 玩 25 分鐘休息 5 分鐘：只算真的在玩的時間；存在進度裡，重新整理也不會歸零；自己離開滿 5 分鐘就算休息過
+const BRK_PLAY = 25*60, BRK_REST = 5*60;
+let brkLast = Date.now(), brkInput = Date.now(), brkAfter = null, brkSaved = Date.now();
+["pointerdown","keydown"].forEach(e=>addEventListener(e, ()=>{ brkInput = Date.now(); }, true));
+const brk = () => me.brk || (me.brk = {u:0, at:0, until:0});
+const brkDue = () => { const b = brk(); return b.until>Date.now() || b.u>=BRK_PLAY; };
+function brkPaint(left){ const v = Math.ceil(left/1000); document.getElementById("brkLeft").textContent = `${Math.floor(v/60)}:${String(v%60).padStart(2,"0")}`; const o = document.getElementById("brkOv"); if(!o.classList.contains("on")){ o.classList.add("on"); bgmOff(); } }
+function brkGo(after){ const b = brk(), now = Date.now(); if(after) brkAfter = after; if(!(b.until>now)){ b.until = now+BRK_REST*1000; b.u = 0; saveMe(); } brkPaint(b.until-now); }
+function brkTick(){ const b = brk(), now = Date.now();
+  if(b.until){ if(now<b.until){ brkPaint(b.until-now); brkLast = now; return; }
+    b.until = 0; b.u = 0; b.at = now; brkLast = now; brkInput = now; saveMe();
+    const o = document.getElementById("brkOv"); if(o.classList.contains("on")){ o.classList.remove("on"); if(SND.bgm) bgmOn(); }
+    const f = brkAfter; brkAfter = null; if(f && document.getElementById("play").classList.contains("on")) f(); return; }
+  if(b.at && now-b.at>=BRK_REST*1000) b.u = 0;
+  if(document.hidden || now-brkInput>120000){ brkLast = now; return; }
+  b.u += Math.min((now-brkLast)/1000, 2); b.at = now; brkLast = now;
+  if(b.u>=BRK_PLAY && !document.getElementById("play").classList.contains("on")) brkGo();
+  if(now-brkSaved>30000){ brkSaved = now; try{ localStorage.setItem(PKEY, JSON.stringify(me)); }catch(e){} } }
+setInterval(brkTick, 1000);
 cloudInit().then(afterCloud);
 setTimeout(afterCloud, 5000);
 </script>
