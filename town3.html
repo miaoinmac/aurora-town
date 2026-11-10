@@ -579,7 +579,7 @@
   <div class="dock">
     <div class="buildbar" id="buildBar"></div>
     <button class="go" id="goQ">⚔️ 開始答題</button>
-    <div class="tbtns"><button id="tWorld">🌍 世界</button><button id="tDex">📖 圖鑑</button><button id="tPar">👪 家長</button><button id="tHelp">❓ 玩法</button></div>
+    <div class="tbtns"><button id="tWorld">🌍 世界</button><button id="tDex">📖 圖鑑</button><button id="tPar">👪 家長</button><button id="tHelp">❓ 玩法</button><button id="tCode">📬 暗號</button></div>
   </div>
 
 <!-- 城鎮 -->
@@ -1317,6 +1317,23 @@ E6("I want to ___ up for the art class.",["sign", "stand", "wake", "give"],"sign
 E6R(["I", "went cold turkey", "on", "candy."]);
 E6R(["Let's", "talk", "turkey."]);
 E6R(["Most", "students", "like", "break time."]);
+
+// 英文：A+ 雜誌 2026/11/10 不衝動購物（Think Before You Buy）。題目自己出、全英文、簡單；Word Power 4 個字打字背
+let E7n = 0; const E7id = () => `英7-${++E7n}`;
+const E7 = (q,opts,exp,ans=opts[0]) => BANK.push({id:E7id(), u:"英7", t:"英文", s:"閱讀與生活", q, opts, ans, exp, w:4});
+const E7T = (q,a,exp) => BANK.push({id:E7id(), u:"英7", t:"英文", s:"拼字", spell:true, w:4, make(){ return {q, ans:a, opts:[a], exp}; }});
+const E7R = c => BANK.push({id:E7id(), u:"英7", t:"英文", s:"句子重組", reorder:true, w:4, make(){ return {q:"Put the words in order.", chunks:c, ans:c.join(" "), opts:[c.join(" ")], exp:c.join(" ")}; }});
+E7T("Type the missing word.\nI bought ten toys. Now I ___ it. My money is gone!","regret","regret 後悔");
+E7T("Type the missing word.\nTom has a strong ___ for a new ball. He really wants it.","desire","desire 渴望");
+E7T("Type the missing word.\nI saw an ___ on TV. Now I want that robot!","advertisement","advertisement 廣告");
+E7T("Type the missing word.\nI finished my homework. Mom gives me a small ___.","treat","treat 犒賞；讓人開心的小東西");
+E7("Water is a ___.",["need", "want"],"need＝一定要有才能生活：水、食物、房子。");
+E7("A video game is a ___.",["want", "need"],"want＝想要，但沒有也可以活：玩具、糖果、電玩。");
+E7("The 24-hour rule: wait ___ before you buy.",["one day", "one minute", "one week", "one month"],"24 hours＝一整天，等一天再決定要不要買。");
+E7("You feel down. What is a good idea?",["play outside", "buy ten toys", "eat all the candy", "watch ads all day"],"心情低落（down）時，做別的事轉移注意力，不要用買東西讓自己開心。");
+E7("Ads keep popping up on your phone. What can you do?",["turn off the notifications", "buy everything", "watch more ads", "give the phone away"],"turn off notifications＝關掉通知，就不會一直看到廣告。");
+E7("___, it stopped raining, so we can play outside.",["Luckily", "Sadly", "Honestly", "Slowly"],"Luckily＝幸好，放在句子最前面，後面加逗點。");
+E7R(["Think", "before", "you", "buy."]);
 
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
@@ -2280,7 +2297,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10 不衝動購物"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -2491,6 +2508,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   if(!me.ven5){ me.ven5 = 1; if(!cfg.tops.includes("英5")) cfg.tops.push("英5"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 11/9 雜誌：只做一次，自動加進範圍（家長要求）
   if(!me.ven6){ me.ven6 = 1; if(!cfg.tops.includes("英6")) cfg.tops.push("英6"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
+  // 11/10 雜誌：只做一次，自動加進範圍
+  if(!me.ven7){ me.ven7 = 1; if(!cfg.tops.includes("英7")) cfg.tops.push("英7"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
   if(!me.vns && today()>ZY_UNTIL){ me.vns = 1; for(const u of ["社1","社2","自1","自2"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.vz3){ me.vz3 = 1; for(const u of ["卓1","卓2","卓3","卓4","卓5","卓6"]) if(!cfg.tops.includes(u)) cfg.tops.push(u); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
@@ -3154,6 +3173,22 @@ document.getElementById("goQ").onclick = ()=>startFlow();
 document.getElementById("wmap").style.backgroundImage = `url("${IMG("bg_world2")}")`;
 document.getElementById("sWeak").onclick = ()=>{ cfg.weak = !cfg.weak; syncSettings(); };
 document.getElementById("tHelp").onclick = ()=>startTut();
+// 雜誌影片暗號（2026-11-10 起）：影片四關各給一個暗號字，四個都打對就領獎勵，每一集只能領一次
+const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"]};
+document.getElementById("tCode").onclick = ()=>{ sfx("tap");
+  const v = prompt("📬 輸入雜誌影片裡的 4 個暗號（中間空一格）"); if(!v) return;
+  const got = new Set(v.toUpperCase().match(/[A-Z]+/g)||[]);
+  for(const [ep,codes] of Object.entries(MAG_CODES)){
+    const hit = codes.filter(c=>got.has(c)).length; if(!hit) continue;
+    me.mcode = me.mcode||{};
+    if(me.mcode[ep]){ toast(`📬 「${ep}」的獎勵已經領過囉！`); return; }
+    if(hit<codes.length){ toast(`📬 對了 ${hit} 個，還差 ${codes.length-hit} 個暗號！回去影片找找看 🔑`); return; }
+    me.mcode[ep] = 1; me.res.coin = (me.res.coin||0)+500; giveItem("lens",1); giveItem("bomb",1); giveItem("sh",1); saveMe();
+    document.getElementById("townRes").innerHTML = resHTML(); sfx("level"); burst("🎉"); burst("🔑");
+    toast(`🔑 暗號全對！打敗 Buy-Buy Monster！<br>🪙 +500　🔍💥🛡️ 各 ×1`); return;
+  }
+  sfx("wrong"); toast("📬 這不是暗號喔，再看一次影片 🔑");
+};
 document.querySelector(".hud").onclick = ()=>pickHero();
 document.getElementById("itLens").onclick = useLens; document.getElementById("itBomb").onclick = useBomb;
 // 首頁的範圍和設定也要先過家長鎖
