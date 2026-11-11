@@ -1762,6 +1762,178 @@ function z3Build(id, p){ const S = Z3V[id], b = BANK.find(q=>q.id===id), R = S.f
   return {q:z3Fill(txt,R.q)+(S.pf ? S.pf(p) : R.p ? z3FillPic(pic,R.p) : pic), exp, ans:a, opts:[a,...w]}; }
 function z3Make(id){ const S = Z3V[id]; for(let i=0;i<200;i++){ const p = S.r(); if(p.join()===S.o.join()) continue; const m = z3Build(id,p); if(m) return m; } return null; }
 BANK.forEach(q=>{ if(Z3V[q.id]){ q.q0 = q.q; q.exp0 = q.exp; } });
+// 卓越盃換數字（第二批，2026-11-11）：剩下沒換數字的題目改成「出題程式」，做過再出現時連圖一起重畫
+const zWK = "日一二三四五六", zMD = [31,28,31,30,31,30,31,31,30,31,30,31];
+const zCN = n => n<=10 ? "零一二三四五六七八九十"[n] : n<20 ? "十"+"零一二三四五六七八九"[n-10] : String(n);
+const zFr = (n,k) => `${zCN(n)}分之${zCN(k)}`;
+const zPk = a => a[Math.floor(Math.random()*a.length)];
+const zMix = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const zAdd = (m,d,k) => { d += k; while(d>zMD[m-1]){ d -= zMD[m-1]; m = m%12+1; } return [m,d]; };   // m 月 d 日再過 k 天
+const zOrd = (m,d) => zMD.slice(0,m-1).reduce((a,b)=>a+b,0)+d;
+// 答案＋錯誤選項：去掉重複、去掉跟答案一樣的；不夠 3 個就重出
+const zQ = (q,a,w,exp) => { a = String(a); const ws = [...new Set(w.map(String))].filter(x=>x!==a && !/NaN|undefined|-\d/.test(x)); return ws.length<3 ? null : {q, ans:a, opts:[a,...ws.slice(0,3)], exp}; };
+const zTry = f => () => { for(let i=0;i<300;i++){ const m = f(); if(m) return m; } return null; };
+const NAMES = ["小美","小明","小華","小玉","阿傑","小安"];
+
+const Z3G = {
+"卓1-3": zTry(()=>{ const A=zI(120,190), B=zI(25,65), C=zI(150,300,10), d=zPk([-1,1])*zI(1,8)*5, D=C-B-d; if(D<30||D>=C) return null;
+  const book=A+B, now=A+C-D, a = d>0?`夠，還多 ${d} 元`:`不夠，還差 ${-d} 元`;
+  return zQ(`弟弟有 ${A} 元，還差 ${B} 元才能買故事書。\n哥哥帶 ${C} 元，買了 ${D} 元的模型，\n把剩下的錢都給弟弟。\n弟弟現在的錢夠買故事書嗎？`+zP3(zShop([["📕","故事書","? 元"]]),zSay([["👦",`我有 ${A} 元，還差 ${B} 元才能買。`],["🧑",`我帶 ${C} 元，買了 ${D} 元的模型，剩下的都給你。`]])),
+    a,[d>0?`不夠，還差 ${d} 元`:`夠，還多 ${-d} 元`,"夠，剛剛好",`不夠，還差 ${B} 元`,`夠，還多 ${Math.abs(d)+10} 元`],
+    `故事書 ${A}＋${B}＝${book} 元；弟弟現在有 ${A}＋${C-D}＝${now} 元，\n${d>0?`${now}－${book}＝${d}，夠，還多 ${d} 元。`:`${book}－${now}＝${-d}，不夠，還差 ${-d} 元。`}`); }),
+"卓1-7": zTry(()=>{ const IT=[["📏","尺"],["🧻","膠帶"],["✂️","剪刀"],["📓","筆記本"]], T=zPk([20,30,40]), p=[zI(11,35),0,zI(10,30),zI(40,75)];
+  p[1]=0; const s=100-T+zPk([-3,-2,2,3]); p[2]=s-p[0]; if(p[2]<8||p[2]===p[0]) return null; p[1]=zI(8,70);
+  const P=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]], rest=([i,j])=>100-p[i]-p[j];
+  if(P.some(x=>!(x[0]===0&&x[1]===2) && (Math.abs(rest(x)-T)<7 || rest(x)<0))) return null;
+  const nm=([i,j])=>`${IT[i][1]}和${IT[j][1]}`, others=P.filter(x=>!(x[0]===0&&x[1]===2) && rest(x)>=0);
+  return zQ(`小彤有 100 元，買了兩樣東西後，大約剩下 ${T} 元。\n${IT.map((t,i)=>`${t[1]} ${p[i]} 元`).join("、")}。\n她最可能買了哪兩樣？`+zP3(zShop(IT.map((t,i)=>[t[0],t[1],`${p[i]} 元`])),zN(`帶 100 元，買 2 樣，大約剩 ${T} 元`)),
+    nm([0,2]), zMix(others).map(nm), `${IT[0][1]}和${IT[2][1]} ${p[0]}＋${p[2]}＝${p[0]+p[2]}，100－${p[0]+p[2]}＝${100-p[0]-p[2]}，大約 ${T} 元。\n其他組合剩 ${others.map(rest).join("、")} 元。`); }),
+"卓2-7": zTry(()=>{ const N=zPk([24,36,48]), dv=[2,3,4,6,8,9,12,16,18,24].filter(x=>N%x===0&&N/x>=2&&N/x<=12), good=zMix(dv).slice(0,3).sort((a,b)=>a-b);
+  if(good.length<3) return null; const bad=zPk([5,7,8,9,10,14].filter(x=>!dv.includes(x)||N%x!==0)); if(N%bad===0) return null;
+  const k=Math.round(N/bad), all=[...good,bad].sort((a,b)=>a-b), pr=s=>Math.round(s*zI(40,48)/10)*10, P={}; all.forEach(s=>P[s]=pr(s));
+  if(k*bad===N) return null; const pack=s=>s<8?"包":"盒";
+  return zQ(`鳳梨酥：${all.map(s=>`${s} 顆一${pack(s)} ${P[s]} 元`).join("、")}。\n媽媽一共買了 ${N} 顆，哪一種「不可能」是她買的？`+zP3(zTab(["包裝","顆數","價錢"],all.map(s=>[`一${pack(s)}`,`${s} 顆`,`${P[s]} 元`])),zN(`媽媽一共買了 ${N} 顆`)),
+    `${P[bad]} 元的買 ${k} ${pack(bad)}`, good.map(s=>`${P[s]} 元的買 ${N/s} ${pack(s)}`),
+    `${P[bad]} 元一${pack(bad)}是 ${bad} 顆，${k} ${pack(bad)}是 ${bad*k} 顆，不是 ${N} 顆。\n其他：${good.map(s=>`${s}×${N/s}`).join("、")} 都是 ${N} 顆。`); }),
+"卓2-10": zTry(()=>{ const p=zI(8,18), a=zI(2,5), b=zI(a+1,a+6), c=zI(1,3), cow=p+a, rab=cow-b, dog=rab+c, tot=p+cow+rab+dog; if(rab<2) return null;
+  const off=x=>x===p?"":(x>p?`多 ${x-p}`:`少 ${p-x}`), o=[cow,rab,dog].map(x=>x-p), so=o.reduce((s,x)=>s+x,0);
+  return zQ(`一包貼紙有兔子、小牛、小狗、熊貓四種，一共 ${tot} 張。\n兔子比小牛少 ${b} 張，小狗比兔子多 ${c} 張，\n小牛比熊貓多 ${a} 張。小狗有幾張？`+zP3(zC([`🐮 比 🐼 多 ${a}`,`🐰 比 🐮 少 ${b}`,`🐶 比 🐰 多 ${c}`]),zN(`四種一共 ${tot} 張`)),
+    dog,[dog+2,p,dog-1,rab,cow],`以熊貓為準：小牛${off(cow)}、兔子${off(rab)||"一樣"}、小狗${off(dog)||"一樣"}，\n4 份熊貓${so>=0?"再多 "+so:"再少 "+(-so)}是 ${tot}，熊貓 ${p} 張，小狗 ${dog} 張。`); }),
+"卓3-3": zTry(()=>{ const k=zI(2,4), m=zI(3,6), n=k*m;
+  return zQ(`${k} 個一樣大的蛋糕，平分給 ${n} 個小朋友。\n每人分到多少個蛋糕？`+zP3(zPies(Array(k).fill(["蛋糕",0,0])),zN(`${"👧👦".repeat(Math.ceil(n/2)).slice(0,n*2)} 平分`)),
+    `${zFr(m,1)}個`,[`${zFr(n,1)}個`,`${zFr(k,1)}個`,`${k} 個`,`${m} 個`],`${n} 人分 ${k} 個，等於 ${m} 人分 1 個，每人${zFr(m,1)}個。`); }),
+"卓3-4": zTry(()=>{ const d=zMix([3,4,5,6,7,8,9,10,12]).slice(0,3), w=["姐姐","爸爸","弟弟"], i=d.indexOf(Math.min(...d));
+  return zQ(`一塊蛋糕，${w.map((x,j)=>`${x}吃了${zFr(d[j],1)}塊`).join("，")}。\n誰吃得最多？`+zP3(zPies(w.map((x,j)=>[`${x} ${zFr(d[j],1)}`,d[j],1]))),
+    w[i],[...w.filter((_,j)=>j!==i),"一樣多"],`分成越少份，每一份越大；${zFr(d[i],1)}最大。`); }),
+"卓3-5": zTry(()=>{ const [a,b,c]=zMix([3,4,5,6,8,9,10,12]).slice(0,3), w=["哥哥","爸爸","妹妹"], d=[a,b,c], i=d.indexOf(Math.min(...d));
+  return zQ(`3 個一樣大的蛋糕：\n哥哥把一個平分成 ${a} 片，吃了 1 片；\n爸爸吃了${zFr(b,1)}個；\n妹妹把一個平分成 ${c} 片，吃了 1 片。誰吃得最多？`+zP3(zPies(w.map((x,j)=>[x,d[j],1]))),
+    w[i],[...w.filter((_,j)=>j!==i),"一樣多"],`哥哥吃${zFr(a,1)}個，爸爸${zFr(b,1)}個，妹妹${zFr(c,1)}個，\n${zFr(d[i],1)}最大。`); }),
+"卓3-6": zTry(()=>{ const k=zPk([2,3]), nm=zMix(NAMES).slice(0,k+1), den=2**k, f=k===2?"四":"八";
+  const steps = k===2 ? `${nm[0]}吃掉一半，${nm[1]}吃掉剩下的一半，\n最後剩下的由${nm[2]}吃完。` : `${nm[0]}吃掉一半，${nm[1]}吃掉剩下的一半，\n${nm[2]}再吃掉剩下的一半，最後剩下的由${nm[3]}吃完。`;
+  return zQ(`一塊餅，${steps}${nm[k]}吃了幾分之幾塊？`+zP3(zB([["🍪",k===2?[[`${nm[0]}吃一半`,5.5],[nm[1],2.75,"b"],[`${nm[2]} ?`,2.75,"q"]]:[[`${nm[0]}吃一半`,5.5],[nm[1],2.75,"b"],[nm[2],1.4,"g"],["?",1.4,"q"]]]])),
+    `${f}分之一塊`,["二分之一塊","三分之一塊",k===2?"八分之一塊":"四分之一塊","六分之一塊"],k===2?"剩下一半，再吃掉一半，剩下四分之一塊。":"一半的一半是四分之一，再一半是八分之一塊。"); }),
+"卓3-7": zTry(()=>{ const s=zPk([2,3]), k=zI(2,4), den=s*k, part=s===2?"一半":"三分之一", cut=s===2?"切成一半":"平分成 3 段";
+  return zQ(`一條吐司先${cut}，\n再把其中${s===2?"一半":"一段"}平分成 ${k} 片。\n1 片是幾分之幾條吐司？`+zP3(zN(`每${s===2?"一半":"一段"}都切 ${k} 片的話，整條是幾片？`)),
+    `${zFr(den,1)}條`,[`${zFr(k,1)}條`,`${zFr(den-1,1)}條`,`${zFr(s,1)}條`,`${zFr(k+s,1)}條`],`${s===2?"兩半":"三段"}都切 ${k} 片，一條就是 ${den} 片，1 片是${zFr(den,1)}條。`); }),
+"卓3-8": zTry(()=>{ const n=zI(8,12), a=zI(3,n-1), m=zI(4,8), b=zI(2,m-1); if(a===n||b===m||a===b) return null;
+  return zQ(`大披薩平分成 ${n} 片，${a} 個大人每人吃 1 片；\n小披薩平分成 ${m} 片，${b} 個小朋友每人吃 1 片。\n哪一句是對的？`+zP3(zPies([[`大披薩 ${n} 片`,n,a],[`小披薩 ${m} 片`,m,b]]),zN("橘色 = 被吃掉的片數")),
+    `1 片大披薩是${zFr(n,1)}個大披薩`,[`每個大人吃了${zFr(a,1)}個`,`每個小朋友吃了${zFr(b,1)}個`,"大人和小朋友吃的一樣多"],"幾分之一要看「平分成幾片」，不是看有幾個人。"); }),
+"卓3-13": zTry(()=>{ const n=zI(6,12), a=zI(1,4), b=zI(1,4), r=n-a-b; if(r<1||a===b) return null;
+  const seg=[...Array(a).fill(["姐",1.5]),...Array(b).fill(["妹",1.5,"b"]),...Array(r).fill(["?",1.5,"q"])];
+  return zQ(`一條緞帶平分成 ${n} 段。\n姐姐用掉 ${a} 段，妹妹用掉 ${b} 段。\n還剩下幾分之幾條？`+zP3(zB([["🎀",seg]])),
+    `${zFr(n,r)}條`,[`${zFr(n,a+b)}條`,`${zFr(a+b,r)}條`,`${zFr(n,r-1||r+1)}條`],`${n}－${a}－${b}＝${r}，還剩 ${r} 段，\n是${zFr(n,r)}條。`); }),
+"卓3-14": zTry(()=>{ const [a,b]=zMix([4,5,6,8,10,12]).slice(0,2);
+  return zQ(`兩個一樣大的披薩：\n甲平分成 ${a} 片，吃掉 ${a-1} 片；\n乙平分成 ${b} 片，吃掉 ${b-1} 片。\n哪一個披薩被吃掉的比較多？`+zP3(zPies([[`甲 吃掉 ${a-1} 片`,a,a-1],[`乙 吃掉 ${b-1} 片`,b,b-1]]),zN("橘色 = 被吃掉的片數")),
+    a>b?"甲":"乙",[a>b?"乙":"甲","一樣多","沒辦法比"],`比剩下的：甲剩${zFr(a,1)}個，乙剩${zFr(b,1)}個。\n${a>b?"甲":"乙"}剩得比較少，所以被吃掉的比較多。`); }),
+"卓4-1": zTry(()=>{ const m=zI(1,12), L=zMD[m-1], n=m%12+1, back=zPk([0,1]);
+  if(back) return zQ(`如果明天是 ${n} 月 2 日，\n那昨天是幾月幾日？`+zP3(zCk(zDesk("?","?","昨天"),zDesk("?","?","今天"),zDesk(`${n} 月`,"2","明天"))),
+    `${m} 月 ${L} 日`,[`${n} 月 1 日`,`${m} 月 ${L-1} 日`,`${m} 月 ${L===31?30:31} 日`],`今天是 ${n} 月 1 日，${m} 月有 ${L} 天，昨天是 ${m} 月 ${L} 日。`);
+  return zQ(`如果昨天是 ${m} 月 ${L} 日，\n那明天是幾月幾日？`+zP3(zCk(zDesk(`${m} 月`,String(L),"昨天"),zDesk("?","?","今天"),zDesk("?","?","明天"))),
+    `${n} 月 2 日`,[`${n} 月 1 日`,`${n} 月 3 日`,`${m} 月 ${L-1} 日`],`${m} 月有 ${L} 天，今天是 ${n} 月 1 日，明天是 ${n} 月 2 日。`); }),
+"卓4-2": zTry(()=>{ const w=zI(0,6), ok=[27,28,29,30].map(x=>(w+x)%7), no=[0,1,2,3,4,5,6].filter(x=>!ok.includes(x)), a=zPk(no);
+  return zQ(`某個月的第 1 天是星期${zWK[w]}，\n這個月的最後一天「不可能」是星期幾？`+zP3(zMons(zMon("這個月",w,31,[1])),zN(`第 1 天是星期${zWK[w]}；一個月可能有 28～31 天`)),
+    `星期${zWK[a]}`,zMix(ok).map(x=>`星期${zWK[x]}`),`一個月有 28～31 天：第 28 天星期${zWK[ok[0]]}、29 天星期${zWK[ok[1]]}、\n30 天星期${zWK[ok[2]]}、31 天星期${zWK[ok[3]]}，不會是星期${zWK[a]}。`); }),
+"卓4-3": zTry(()=>{ const m=zI(1,12), k=zI(2,4), w=zI(0,6), a=(k-1)*7+1;
+  return zQ(`公園每年在 ${m} 月的第 ${k} 個星期${zWK[w]}辦活動。\n活動日最早會是 ${m} 月幾日？`+zP3(zMons(zMon(`${m} 月`,0,35,[],{blank:1,col:w})),zN("把 1 日放在不同的星期試試看")),
+    `${m} 月 ${a} 日`,[`${m} 月 ${a+6} 日`,`${m} 月 ${a-1} 日`,`${m} 月 ${a+1} 日`,`${m} 月 ${k*7} 日`],`${m} 月 1 日如果就是星期${zWK[w]}，第 ${k} 個星期${zWK[w]}是 ${m} 月 ${a} 日。`); }),
+"卓4-4": zTry(()=>{ const m=zI(1,12), L=zMD[m-1], n=m%12+1, d1=zI(12,26), d2=zI(3,12), st=zI(0,6), a=L-d1+1+d2;
+  return zQ(`從 ${m} 月 ${d1} 日到 ${n} 月 ${d2} 日，\n一共有幾天？（頭尾兩天都算）`+zP3(zMons(zMon(`${m} 月`,st,L,[d1]),zMon(`${n} 月`,(st+L)%7,zMD[n-1],[d2]))),
+    a,[a-1,a+1,d1+d2-1,L-d1+d2],`${m} 月有 ${L} 天：${d1}～${L} 日是 ${L-d1+1} 天，${n} 月 1～${d2} 日是 ${d2} 天，\n一共 ${a} 天。`); }),
+"卓4-5": zTry(()=>{ const m=zI(1,11), L=zMD[m-1], d1=zI(15,L), wk=zI(2,3), d2=zI(1,12), len=zI(10,25), sA=zOrd(m,d1), eA=sA+wk*7-1, sB=zOrd(m+1,d2), eB=sB+len-1, ov=Math.min(eA,eB)-Math.max(sA,sB)+1;
+  if(ov<3||ov===len) return null; const dt=o=>{ let mm=1; while(o>zMD[mm-1]){ o-=zMD[mm-1]; mm++; } return `${mm} 月 ${o} 日`; }, st=zI(0,6);
+  return zQ(`甲店從 ${m} 月 ${d1} 日開始特賣 ${wk} 個星期，\n乙店從 ${m+1} 月 ${d2} 日開始特賣 ${len} 天。\n兩家店同時特賣有幾天？`+zP3(zMons(zMon(`${m} 月`,st,L,[d1]),zMon(`${m+1} 月`,(st+L)%7,zMD[m],[d2])),zN(`黃色：甲店 ${m}/${d1}、乙店 ${m+1}/${d2} 開始`)),
+    ov,[ov-1,ov+1,len,wk*7],`甲店 ${wk*7} 天：${m} 月 ${d1} 日到 ${dt(eA)}。\n乙店到 ${dt(eB)}。同時是 ${dt(Math.max(sA,sB))}到 ${dt(Math.min(eA,eB))}，${ov} 天。`); }),
+"卓4-9": zTry(()=>{ const m=zI(1,11), L=zMD[m-1], d1=zI(L-8,L-2), sw=zPk([5,6]), len=zI(7,12), [m2,d2]=zAdd(m,d1,len-1); if(m2===m) return null;
+  let we=0; for(let i=0;i<len;i++){ const x=(sw+i)%7; if(x===0||x===6) we++; } const ew=(sw+len-1)%7, a=len+we;
+  return zQ(`賣場活動從 ${m} 月 ${d1} 日星期${zWK[sw]}到 ${m2} 月 ${d2} 日星期${zWK[ew]}，\n每天購物送 1 支棒棒糖，星期六、日送 2 支。\n姐姐每天都去一次，一共拿到幾支？`+zP3(zMons(zMon(`${m} 月`,(sw-(d1-1)%7+7)%7,L,[d1]),zMon(`${m2} 月`,(sw+(L-d1+1))%7,zMD[m2-1],[d2])),zN("黃色：活動第一天和最後一天")),
+    a,[len,len*2,len+2,a+1],`${m} 月 ${d1} 日到 ${m2} 月 ${d2} 日共 ${len} 天，\n其中星期六、日有 ${we} 天各多 1 支，${len}＋${we}＝${a} 支。`); }),
+"卓4-10": zTry(()=>{ const w=zI(0,6), s=(w+1)%7, ok=[27,28,29,30].map(x=>(s+x)%7), no=[0,1,2,3,4,5,6].filter(x=>!ok.includes(x)), a=zPk(no);
+  return zQ(`上個月的最後一天是星期${zWK[w]}，\n這個月的最後一天「不可能」是星期幾？`+zP3(zMons(zMon("這個月",s,31,[],{prev:"上月底"})),zN("一個月可能有 28～31 天")),
+    `星期${zWK[a]}`,zMix(ok).map(x=>`星期${zWK[x]}`),`這個月 1 日是星期${zWK[s]}：第 28 天星期${zWK[ok[0]]}、29 天星期${zWK[ok[1]]}、\n30 天星期${zWK[ok[2]]}、31 天星期${zWK[ok[3]]}，不會是星期${zWK[a]}。`); }),
+"卓4-11": zTry(()=>{ const h=zPk([7,8]), m=zI(6,11)*5, t=zI(3,8)*5, arr=h*60+m+t, x=zPk([-15,-10,-5,0,5,10,15]), cl=arr-x, ch=Math.floor(cl/60), cm=cl%60, ah=Math.floor(arr/60), am=arr%60;
+  if(cm%5) return null; const a = x>0?`會遲到 ${x} 分鐘`:x<0?`不會，早到 ${-x} 分鐘`:"剛好準時", f=(H,M)=>`${H} 時 ${M} 分`;
+  return zQ(`小明出門和學校上課的時刻如鐘面，\n他走 ${t} 分鐘到學校。他會遲到嗎？`+zP3(zCk(zClk(h,m,"出門"),zClk(ch,cm,"上課")),zN(`走到學校要 ${t} 分鐘`)),
+    a,[x>0?`不會，早到 ${x} 分鐘`:`會遲到 ${Math.abs(x)||5} 分鐘`,"剛好準時",`會遲到 ${Math.abs(x)+10} 分鐘`,`不會，早到 ${Math.abs(x)+10} 分鐘`],
+    `${f(h,m)}再 ${t} 分鐘是 ${f(ah,am)}，${x>0?`比 ${f(ch,cm)}晚 ${x} 分鐘。`:x<0?`比 ${f(ch,cm)}早 ${-x} 分鐘。`:`剛好是上課時間。`}`); }),
+"卓4-12": zTry(()=>{ const m=zI(1,11), w=zI(0,6), L=zMD[m-1], r=L%7, a=(w+r)%7;
+  return zQ(`某年 ${m} 月 1 日是星期${zWK[w]}。\n同一年的 ${m+1} 月 1 日是星期幾？`+zP3(zMons(zMon(`${m} 月`,w,L,[1])),zN(`${m+1} 月 1 日接在 ${m} 月 ${L} 日後面`)),
+    `星期${zWK[a]}`,[`星期${zWK[w]}`,`星期${zWK[(a+1)%7]}`,`星期${zWK[(a+6)%7]}`,`星期${zWK[(w+3)%7]}`],`${m} 月有 ${L} 天，${m+1} 月 1 日是 ${L} 天後。\n${L}÷7＝4 週餘 ${r}，星期${zWK[w]}再過 ${r} 天是星期${zWK[a]}。`); }),
+"卓4-13": zTry(()=>{ const L=zPk([30,31]), s=zI(0,6), k=L-28, five=Array.from({length:k},(_,i)=>(s+i)%7), a=five[k-1];
+  return zQ(`某個月有 ${L} 天，\n${five.map(x=>`星期${zWK[x]}`).join("、")}都有 5 個。\n這個月的最後一天是星期幾？`+zP3(zMons(zMon("這個月",0,35,[],{blank:1})),zN(`${L} 天 = 4 個星期又 ${k} 天`)),
+    `星期${zWK[a]}`,[`星期${zWK[s]}`,`星期${zWK[(a+1)%7]}`,`星期${zWK[(s+6)%7]}`],`${L} 天是 4 週多 ${k} 天，多出來的就是前 ${k} 天。\n所以 1 日是星期${zWK[s]}，${L} 日是星期${zWK[a]}。`); }),
+"卓4-15": zTry(()=>{ const m=zI(1,11), L=zMD[m-1], d=zI(L-6,L-1), k=zI(2,5), n=zI(3,6), g=(n-1)*k, [m2,d2]=zAdd(m,d,g), st=zI(0,6); if(m2===m) return null;
+  const f=x=>{ const [a,b]=zAdd(m,d,x); return `${a} 月 ${b} 日`; };
+  return zQ(`小玉 ${m} 月 ${d} 日第 1 次去圖書館，\n之後每過 ${k} 天去一次。\n第 ${n} 次去是幾月幾日？`+zP3(zMons(zMon(`${m} 月`,st,L,[d]),zMon(`${m2} 月`,(st+L)%7,zMD[m2-1],[])),zN("黃色：第 1 次去的那天")),
+    `${m2} 月 ${d2} 日`,[f(g+k),f(g-1),f(g+1),`${m} 月 ${d+g-L+1} 日`],`第 ${n} 次比第 1 次多 ${n-1} 個 ${k} 天，是 ${g} 天後。\n${m} 月有 ${L} 天，${m} 月 ${d} 日再過 ${g} 天是 ${m2} 月 ${d2} 日。`); }),
+"卓5-1": zTry(()=>{ const a=zI(2,4), b=zI(2,3), x=zI(2,4), y=zI(3,8), A=x*b*a, B=y*a, df=Math.abs(A-B); if(!df) return null;
+  const big=A>B?"甲":"乙", sm=A>B?"乙":"甲";
+  return zQ(`1 個中杯＝${a} 個小杯，1 個大杯＝${b} 個中杯。\n甲水壺裝滿是 ${x} 個大杯，乙水壺裝滿是 ${y} 個中杯。\n誰的水壺比較大？差幾個小杯？`+zP3(zB([["甲",[...Array(x).fill(["大杯",3.2])]],["乙",[...Array(y).fill(["中杯",1.8,"b"])]]]),zN(`中杯＝${a} 小杯；大杯＝${b} 中杯`)),
+    `${big}大，差 ${df} 個小杯`,[`${sm}大，差 ${df} 個小杯`,`${big}大，差 ${df/a} 個小杯`,"一樣大",`${big}大，差 ${df+a} 個小杯`],`甲：${x} 大杯＝${x*b} 中杯＝${A} 小杯；乙：${y} 中杯＝${B} 小杯，\n${big}大 ${df} 小杯。`); }),
+"卓5-2": zTry(()=>{ const L1=zI(20,40)*10, L2=L1+zI(2,5)*10, r=zI(1,12)*5, y=L2-r; if(y===L1) return null; const nm=zMix(["小豆","小奇","小安","阿傑"]).slice(0,2), f=y>L1?nm[1]:nm[0];
+  return zQ(`操場內圈 ${L1} 公尺、外圈 ${L2} 公尺。\n${nm[0]}在內圈、${nm[1]}在外圈，同時出發。\n${nm[0]}跑完一圈時，${nm[1]}還差 ${r} 公尺。誰跑得快？`+zP3(zTrack(),zN(`${nm[0]}跑完一圈時，${nm[1]}還差 ${r} 公尺`)),
+    f,[f===nm[0]?nm[1]:nm[0],"一樣快","沒辦法比"],`同樣的時間，${nm[0]}跑 ${L1} 公尺，${nm[1]}跑 ${L2}－${r}＝${y} 公尺，${f}快。`); }),
+"卓5-10": zTry(()=>{ const S=["文具店","便利商店","書店"], d=S.map(()=>[zI(20,60),zI(20,60)]), t=d.map(([a,b])=>a+b), mn=Math.min(...t); if(t.filter(x=>x===mn).length>1) return null;
+  const i=t.indexOf(mn), fst=d.map(x=>x[0]); if(fst.indexOf(Math.min(...fst))===i) return null;   // 第一段最短的不是答案，才有陷阱
+  return zQ(`大寶要先買筆再去學校：\n${S.map((s,j)=>`家→${s} ${d[j][0]} 公尺，${s}→學校 ${d[j][1]} 公尺`).join("；\n")}。\n走最短的路，要去哪裡買？`+zP3(zTab(["地點","家→店","店→學校"],S.map((s,j)=>[s,`${d[j][0]}`,`${d[j][1]}`])),zN("單位：公尺")),
+    S[i],[...S.filter((_,j)=>j!==i),"都一樣"],`${S.map((s,j)=>`${s} ${t[j]}`).join("、")} 公尺，${S[i]}最短。`); }),
+"卓6-9": zTry(()=>{ const T=zPk([["長方體","幾個面、幾個頂點","6 個面、8 個頂點",["6 個面、12 個頂點","8 個面、6 個頂點","4 個面、8 個頂點"]],["長方體","幾條邊","12 條",["8 條","6 條","10 條"]],["正方體","幾個面、幾條邊","6 個面、12 條邊",["6 個面、8 條邊","8 個面、12 條邊","4 個面、12 條邊"]],["正方體","幾個頂點","8 個",["6 個","12 個","4 個"]]]);
+  return zQ(`一個${T[0]}有${T[1]}？`+Z3PIC["卓6-9"],T[2],T[3],`${T[0]}有 6 個面、12 條邊、8 個頂點。`); }),
+"卓6-10": zTry(()=>{ const l=zI(2,5), w=zI(2,4), h=zI(2,3), a=l*w*h;
+  return zQ(`用小正方體堆成長 ${l} 個、寬 ${w} 個、高 ${h} 層的長方體，\n一共用了幾個小正方體？`+zP3(zN(`長 ${l} 個、寬 ${w} 個、高 ${h} 層（後面也有）`)),
+    a,[l+w+h,l*w,a-l,a+w],`一層 ${l}×${w}＝${l*w} 個，${h} 層是 ${a} 個。`); }),
+"卓6-11": zTry(()=>{ const n=zI(6,10), k=zI(1,4)*2, m=n-k/2+zPk([-1,0,1]); if(m<3) return null; const B=m+k/2, a=n>B?"甲":n<B?"乙":"一樣大";
+  const g=(x0,full,half)=>{ let s=""; for(let i=0;i<full;i++) s+=zR(x0+(i%4)*26,30+Math.floor(i/4)*26,26,26); for(let i=0;i<half;i++){ const j=full+i, X=x0+(j%4)*26, Y=30+Math.floor(j/4)*26; s+=zPg(`${X},${Y} ${X+26},${Y+26} ${X},${Y+26}`,"#9fd3ff"); } return s; };
+  const rows=Math.ceil(Math.max(n,m+k)/4);
+  return zQ(`甲圖是 ${n} 個小正方格；\n乙圖是 ${m} 個小正方格，加上 ${k} 個半格。\n哪一個的面積比較大？`+zP3(zSv(250,40+rows*26,zT(50,20,"甲")+g(5,n,0)+zT(180,20,"乙")+g(130,m,k))),
+    a,["甲","乙","一樣大","沒辦法比"].filter(x=>x!==a),`${k} 個半格合起來是 ${k/2} 格，乙是 ${m}＋${k/2}＝${B} 格，甲是 ${n} 格，${a==="一樣大"?"一樣大":a+"比較大"}。`); }),
+"卓6-15": zTry(()=>{ const W=zI(5,7), H=zI(3,4), f=zI(1,3), k=zI(1,3)*2, tot=W*H, a=tot-f-k/2; if(f+k>tot-4) return null;
+  const cells=zMix(Array.from({length:tot},(_,i)=>i)), wf=cells.slice(0,f), wh=cells.slice(f,f+k); let s="";
+  for(let i=0;i<tot;i++){ const X=5+(i%W)*28, Y=5+Math.floor(i/W)*28; if(wf.includes(i)) s+=zR(X,Y,28,28,"#fff"); else if(wh.includes(i)) s+=zR(X,Y,28,28,"#fff")+zPg(`${X},${Y} ${X},${Y+28} ${X+28},${Y+28}`,"#9fd3ff"); else s+=zR(X,Y,28,28); }
+  return zQ(`看圖：長 ${W} 格、寬 ${H} 格的方格紙，\n藍色的部分一共是幾格？\n（斜切的是半格）`+zP3(zSv(10+W*28,10+H*28,s)),
+    `${a} 格`,[`${tot-f-k} 格`,`${tot-f} 格`,`${a+1} 格`,`${tot} 格`],`全部 ${tot} 格，白色有 ${f} 個整格和 ${k} 個半格。\n${k} 個半格是 ${k/2} 格，${tot}－${f}－${k/2}＝${a} 格。`); }),
+};
+
+// 新題型（2026-11-11 家長要求增加題目）：每次出都是新數字
+const Z3NEW = (u, gen) => { const m = gen(); if(!m) return; BANK.push({id:`${u}-${BANK.filter(x=>x.u===u).length+1}`, u, t:"卓越盃", s:"卓越盃", q:m.q, opts:m.opts, ans:m.ans, exp:m.exp, w:3, make:()=>{ const x = gen() || m; return Object.assign({}, x, {keepAns:true}); }}); };
+const zHM = x => `${Math.floor(x/60)} 時 ${x%60} 分`;
+Z3NEW("卓1", zTry(()=>{ const p=[zI(120,390),zI(120,390),zI(120,390)], s=p[0]+p[1]+p[2], a=Math.ceil(s/100)*100; if(a-s<10) return null; const it=zMix([["🎒","書包"],["👟","球鞋"],["🧸","玩偶"],["📚","套書"],["🎨","畫具"]]).slice(0,3);
+  return zQ(`${it.map((t,i)=>`${t[1]} ${p[i]} 元`).join("、")}。\n三樣都要買，最少要帶幾張百元鈔？`+zP3(zShop(it.map((t,i)=>[t[0],t[1],`${p[i]} 元`]))),
+    `${a/100} 張`,[`${a/100-1} 張`,`${a/100+1} 張`,`${Math.round(s/100)===a/100?a/100+2:Math.round(s/100)} 張`],`${p.join("＋")}＝${s} 元，\n${a/100-1} 張只有 ${a-100} 元不夠，要 ${a/100} 張。`); }));
+Z3NEW("卓1", zTry(()=>{ const d=zMix([1,2,3,4,5,6,7,8,9]).slice(0,4); const per=[]; const pm=(a,r)=>{ if(!a.length) per.push(r); a.forEach((x,i)=>pm(a.filter((_,j)=>j!==i),r*10+x)); }; pm(d,0);
+  const ev=per.filter(x=>x%2===0).sort((a,b)=>b-a); if(!ev.length) return null; const a=ev[0], mx=Math.max(...per);
+  return zQ(`用 ${d.join("、")} 四張數字卡，每張用一次，\n排出最大的「雙數」是多少？`+zP3(zC(d.map(String))),
+    a,[mx,ev[ev.length-1],ev[1]||a-2,a+1],`雙數的個位要是雙數，把最小可用的雙數放個位，\n其他從大排到小，最大雙數是 ${a}。`); }));
+Z3NEW("卓2", zTry(()=>{ const n=zI(3,8), u=zI(45,135,5), s=n*u, pay=Math.ceil(s/500)*500; if(pay===s) return null; const it=zPk(["色筆","筆記本","果汁","麵包"]);
+  return zQ(`一個${it} ${u} 元，買 ${n} 個，\n付 ${pay} 元，要找回多少元？`+zP3(zShop([["🛒",it,`${u} 元`]]),zN(`買 ${n} 個，付 ${pay} 元`)),
+    pay-s,[s,pay-u*(n-1),pay-s+10,pay-s-u],`${u}×${n}＝${s} 元，${pay}－${s}＝${pay-s} 元。`); }));
+Z3NEW("卓2", zTry(()=>{ const d=zI(3,8), k=zI(6,14), L=d*k, both=zPk([1,0]);
+  return zQ(`一條路長 ${L} 公尺，從頭到尾每 ${d} 公尺種一棵樹，\n${both?"頭和尾都要種":"頭要種、尾不種"}，一共種幾棵？`+zP3(zN(`🌳—${d}m—🌳—${d}m—🌳 … 全長 ${L} 公尺`)),
+    k+both,[k+1-both,k-1,k+2],`${L}÷${d}＝${k} 個間隔，${both?"頭尾都種，棵數比間隔多 1："+(k+1):"尾不種，棵數和間隔一樣："+k} 棵。`); }));
+Z3NEW("卓3", zTry(()=>{ const k=zI(4,9), n=zI(20,60), q=Math.floor(n/k), r=n%k; if(!r) return null;
+  return zQ(`${n} 個小朋友坐車，每輛車最多坐 ${k} 人，\n最少要幾輛車才坐得下？`+zP3(zIcons("🚐",Math.min(q+1,8)),zN(`每輛最多 ${k} 人`)),
+    q+1,[q,q+2,r],`${n}÷${k}＝${q}…${r}，坐滿 ${q} 輛還剩 ${r} 人，\n要再一輛，共 ${q+1} 輛。`); }));
+Z3NEW("卓3", zTry(()=>{ const n=zI(5,12), a=zI(1,n-1), b=zI(1,n-1); if(a===b) return null; const w=["姐姐","妹妹"];
+  return zQ(`一條巧克力平分成 ${n} 格，\n姐姐吃了${zFr(n,a)}條，妹妹吃了${zFr(n,b)}條。\n誰吃得比較多？多幾格？`+zP3(zB([["🍫",Array.from({length:n},(_,i)=>[i<a?"姐":"",1.3,i<a?"a":"g"])]])),
+    `${a>b?w[0]:w[1]}，多 ${Math.abs(a-b)} 格`,[`${a>b?w[1]:w[0]}，多 ${Math.abs(a-b)} 格`,`${a>b?w[0]:w[1]}，多 ${Math.abs(a-b)+1} 格`,"一樣多"],`分母一樣，比分子：${a} 格和 ${b} 格，\n${a>b?w[0]:w[1]}多 ${Math.abs(a-b)} 格。`); }));
+Z3NEW("卓4", zTry(()=>{ const s=zI(7,9)*60+zI(0,11)*5, h=zI(1,2), m=zI(1,11)*5, e=s+h*60+m; if(e>=12*60) return null;
+  return zQ(`電影從上午 ${zHM(s)} 開始，演了 ${h} 小時 ${m} 分鐘。\n電影上午幾時幾分結束？`+zP3(zCk(zClk(Math.floor(s/60),s%60,"開始"),zGo(`${h} 小時 ${m} 分`),zQc("?"))),
+    zHM(e),[zHM(e+60),zHM(e-10),zHM(s+h*60),zHM(e+10)],`${zHM(s)} 過 ${h} 小時是 ${zHM(s+h*60)}，\n再過 ${m} 分鐘是 ${zHM(e)}。`); }));
+Z3NEW("卓4", zTry(()=>{ const w=zI(0,6), n=zI(9,40), a=(w+n)%7;
+  return zQ(`今天是星期${zWK[w]}，\n再過 ${n} 天是星期幾？`+zP3(zN(`${n}÷7＝${Math.floor(n/7)} 週又 ? 天`)),
+    `星期${zWK[a]}`,[`星期${zWK[(a+1)%7]}`,`星期${zWK[(a+6)%7]}`,`星期${zWK[w]}`,`星期${zWK[(a+2)%7]}`],`${n}÷7＝${Math.floor(n/7)} 週餘 ${n%7}，\n星期${zWK[w]}再過 ${n%7} 天是星期${zWK[a]}。`); }));
+Z3NEW("卓5", zTry(()=>{ const n=zI(3,6), v=zI(3,9)*50, s=n*v, L=Math.floor(s/1000), ml=s%1000; if(!L) return null; const f=x=>`${Math.floor(x/1000)} 公升 ${x%1000} 毫升`;
+  return zQ(`一瓶果汁 ${v} 毫升，買了 ${n} 瓶。\n一共是幾公升幾毫升？`+zP3(zIcons("🧃",n),zN("1 公升＝1000 毫升")),
+    ml?f(s):`${L} 公升`,[`${n} 公升 ${v} 毫升`,f(s+100),f(s+1000),`${s} 公升`],`${v}×${n}＝${s} 毫升，\n1000 毫升是 1 公升，${s} 毫升是 ${ml?f(s):L+" 公升"}。`); }));
+Z3NEW("卓5", zTry(()=>{ const a=zI(1,3)*1000+zI(1,9)*100, b=zI(1,3), c=zI(1,19)*50; const B=b*1000+c; if(a===B) return null; const f=x=>`${Math.floor(x/1000)} 公斤 ${x%1000} 公克`;
+  return zQ(`西瓜重 ${a} 公克，鳳梨重 ${b} 公斤 ${c} 公克。\n哪一個比較重？重多少公克？`+zP3(zSee("🍉","🍍"),zN("1 公斤＝1000 公克")),
+    `${a>B?"西瓜":"鳳梨"}，重 ${Math.abs(a-B)} 公克`,[`${a>B?"鳳梨":"西瓜"}，重 ${Math.abs(a-B)} 公克`,`${a>B?"西瓜":"鳳梨"}，重 ${Math.abs(a-B)+100} 公克`,"一樣重"],`${b} 公斤 ${c} 公克＝${B} 公克，\n${Math.max(a,B)}－${Math.min(a,B)}＝${Math.abs(a-B)}，${a>B?"西瓜":"鳳梨"}比較重。`); }));
+Z3NEW("卓6", zTry(()=>{ const s=zI(3,15), P=s*4, ask=zPk([0,1]);
+  return ask ? zQ(`一個正方形的周長是 ${P} 公分，\n邊長是幾公分？`+zP3(zSv(110,110,zR(15,15,80,80)+zT(55,58,"?"))),`${s} 公分`,[`${P*4} 公分`,`${s*2} 公分`,`${s+1} 公分`],`正方形 4 條邊一樣長，${P}÷4＝${s} 公分。`)
+    : zQ(`一個正方形的邊長是 ${s} 公分，\n周長是幾公分？`+zP3(zSv(110,110,zR(15,15,80,80)+zT(55,10,`${s}`))),`${P} 公分`,[`${s*2} 公分`,`${s*s} 公分`,`${P+4} 公分`],`周長是 4 條邊加起來，${s}×4＝${P} 公分。`); }));
+Z3NEW("卓6", zTry(()=>{ const l=zI(3,7), w=zI(2,5), a=l*w; if(l===w) return null; let s=""; for(let y=0;y<w;y++) for(let x=0;x<l;x++) s+=zR(5+x*24,5+y*24,24,24);
+  return zQ(`一個長方形長 ${l} 公分、寬 ${w} 公分，\n用 1 平方公分的小方格剛好鋪滿，要幾格？`+zP3(zSv(10+l*24,10+w*24,s)),
+    `${a} 格`,[`${2*(l+w)} 格`,`${l+w} 格`,`${a+l} 格`],`一排 ${l} 格，有 ${w} 排，${l}×${w}＝${a} 格。`); }));
+
 
 // 舊題目依內容標上單元：植物→自然1，磁鐵和力→自然2，社會裡講學校、學習的→社會2，其他→社會1
 const MID = ["自1","自2","社1","社2","數1","數2","數3","數4"];
@@ -2946,6 +3118,7 @@ function nextQ(){
   else { cur = onlyList ? onlyList[base_n] : choose(); base_n++; }
   lastK = cur.u[0]==="英" ? "英" : "數";
   if(Z3V[cur.id] && stats[cur.id]){ const m = z3Make(cur.id); if(m) cur = Object.assign({}, cur, m); }   // 做過的卓越盃題換數字再出
+  else if(typeof Z3G!=="undefined" && Z3G[cur.id] && stats[cur.id]){ const m = Z3G[cur.id](); if(m) cur = Object.assign({}, cur, m); }   // 第二批：出題程式重出（連圖重畫）
   if(cur.make && !cur.made){ const m = cur.make(); cur = Object.assign({}, cur, m, {ans:m.keepAns ? m.ans : m.opts[0], made:true}); }
   { const L = LANDS.find(l=>l.k===cur.u[0]) || LANDS[0]; const bg = cur.u[0]==="自"?"bg_forest":L.bg; if(place && place.area==="flow"){ const url = `url("${IMG(bg)}")`; document.getElementById("qbg").style.backgroundImage = url; document.getElementById("endBg").style.backgroundImage = url; } }
   recent.push(cur.id); if(recent.length>Math.min(8, Math.floor(pool.length/2))) recent.shift();
