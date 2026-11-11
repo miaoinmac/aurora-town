@@ -1343,6 +1343,17 @@ E7("You feel down. What is a good idea?",["play outside", "buy ten toys", "eat a
 E7("Ads keep popping up on your phone. What can you do?",["turn off the notifications", "buy everything", "watch more ads", "give the phone away"],"turn off notifications＝關掉通知，就不會一直看到廣告。");
 E7("___, it stopped raining, so we can play outside.",["Luckily", "Sadly", "Honestly", "Slowly"],"Luckily＝幸好，放在句子最前面，後面加逗點。");
 E7R(["Think", "before", "you", "buy."]);
+// 2026/11/11 購物狂 Rebecca 的綠圍巾（同一單元 Unit 5 下半）：scarf、deal、beat、nearly 打字背
+E7T("Type the missing word.\nIt is cold. I wear a ___ around my neck.","scarf","scarf 圍巾");
+E7T("Type the missing word.\nHalf price pizza? What a great ___!","deal","a great deal 划算的價格");
+E7T("Type the missing word.\nI am so excited. My heart ___s fast.","beat","beat （心臟）跳動");
+E7T("Type the missing word.\nIt is ___ nine o'clock. Time for bed!","nearly","nearly 幾乎；將近");
+E7("Was NT$3,600. Now only NT$1,200! This is a ___.",["price trick", "free gift", "need", "closet"],"先給大數字（原價），小數字就顯得便宜，這叫定錨效應（the anchoring effect）。1,200 元還是很多錢！");
+E7("The clerk says, \"It's the last one!\" What should you do?",["stop and think", "buy it fast", "buy two", "cry"],"「只剩最後一個」是讓你急著買的手法，先停下來想一想。");
+E7("Rebecca has 17 scarves at home. Does she need a new one?",["No, she has enough.", "Yes, she has none.", "Yes, it is a need.", "No, she has no closet."],"衣櫃裡已經有 17 條圍巾了，夠用了（enough）。");
+E7("What color is Rebecca's new scarf?",["green", "red", "yellow", "blue"],"\"Well … but this one is green.\" 新圍巾是綠色的。");
+E7("I ate a big pizza. I am not hungry ___.",["anymore", "today", "yet", "again"],"not … anymore＝不再，anymore 放句尾。");
+E7R(["There", "is", "only", "one", "left!"]);
 
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
@@ -2479,7 +2490,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10 不衝動購物"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10–11 不衝動購物"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -3375,7 +3386,7 @@ document.getElementById("wmap").style.backgroundImage = `url("${IMG("bg_world2")
 document.getElementById("sWeak").onclick = ()=>{ cfg.weak = !cfg.weak; syncSettings(); };
 document.getElementById("tHelp").onclick = ()=>startTut();
 // 雜誌影片暗號（2026-11-10 起）：影片四關各給一個暗號字，四個都打對就領獎勵，每一集只能領一次
-const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"]};
+const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"], "11/11 綠圍巾":["PRICE","LAST","THINK","ENOUGH"]};
 document.getElementById("tCode").onclick = ()=>{ sfx("tap");
   const v = prompt("📬 輸入雜誌影片裡的 4 個暗號（中間空一格）"); if(!v) return;
   const got = new Set(v.toUpperCase().match(/[A-Z]+/g)||[]);
@@ -3386,7 +3397,7 @@ document.getElementById("tCode").onclick = ()=>{ sfx("tap");
     if(hit<codes.length){ toast(`📬 對了 ${hit} 個，還差 ${codes.length-hit} 個暗號！回去影片找找看 🔑`); return; }
     me.mcode[ep] = 1; me.res.coin = (me.res.coin||0)+500; giveItem("lens",1); giveItem("bomb",1); giveItem("sh",1); saveMe();
     document.getElementById("townRes").innerHTML = resHTML(); sfx("level"); burst("🎉"); burst("🔑");
-    toast(`🔑 暗號全對！打敗 Buy-Buy Monster！<br>🪙 +500　🔍💥🛡️ 各 ×1`); return;
+    toast(`🔑 暗號全對！「${ep}」打敗 Buy-Buy Monster！<br>🪙 +500　🔍💥🛡️ 各 ×1`); return;
   }
   sfx("wrong"); toast("📬 這不是暗號喔，再看一次影片 🔑");
 };
