@@ -3506,7 +3506,7 @@ document.getElementById("wmap").style.backgroundImage = `url("${IMG("bg_world2")
 document.getElementById("sWeak").onclick = ()=>{ cfg.weak = !cfg.weak; syncSettings(); };
 document.getElementById("tHelp").onclick = ()=>startTut();
 // 雜誌影片暗號（2026-11-10 起）：影片四關各給一個暗號字，四個都打對就領獎勵，每一集只能領一次
-const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"], "11/11 綠圍巾":["PRICE","LAST","THINK","ENOUGH"]};
+const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"], "11/11 綠圍巾":["PRICE","LAST","THINK","ENOUGH"], "11/12 植物睡覺 Munch Bug":["DARK","SLEEP","SAFE","LIGHT"]};
 document.getElementById("tCode").onclick = ()=>{ sfx("tap");
   const v = prompt("📬 輸入雜誌影片裡的 4 個暗號（中間空一格）"); if(!v) return;
   const got = new Set(v.toUpperCase().match(/[A-Z]+/g)||[]);
@@ -3517,7 +3517,7 @@ document.getElementById("tCode").onclick = ()=>{ sfx("tap");
     if(hit<codes.length){ toast(`📬 對了 ${hit} 個，還差 ${codes.length-hit} 個暗號！回去影片找找看 🔑`); return; }
     me.mcode[ep] = 1; me.res.coin = (me.res.coin||0)+500; giveItem("lens",1); giveItem("bomb",1); giveItem("sh",1); saveMe();
     document.getElementById("townRes").innerHTML = resHTML(); sfx("level"); burst("🎉"); burst("🔑");
-    toast(`🔑 暗號全對！「${ep}」打敗 Buy-Buy Monster！<br>🪙 +500　🔍💥🛡️ 各 ×1`); return;
+    toast(`🔑 暗號全對！「${ep}」闖關成功，打敗怪獸！<br>🪙 +500　🔍💥🛡️ 各 ×1`); return;
   }
   sfx("wrong"); toast("📬 這不是暗號喔，再看一次影片 🔑");
 };
