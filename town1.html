@@ -1166,6 +1166,302 @@ const ZPIC = {
 };
 BANK.forEach(q=>{ if(ZPIC[q.id]) q.q += ZPIC[q.id]; });
 
+// 換數字（11/12）：卓越盃每次出題，數字、名字、順序都重新變，背答案沒有用，要真的算
+// 文字裡的 ~ 會換成注音字型的破音記號（數~＝ㄕㄨˇ、子~＝輕聲…）
+const zf = s => String(s).replace(/~/g,"\u{E01E1}");
+const zR = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const zPk = a => a[Math.floor(Math.random()*a.length)];
+const zSh = a => { const b = a.slice(); for(let i=b.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]] = [b[j],b[i]]; } return b; };
+const zW8 = v => Math.max(1.4, Math.min(9, v*0.8));   // 方塊圖的寬度
+const zRun = (st,step,n) => Array.from({length:n},(_,i)=>st+step*i).join("、");
+const WK = ["星期一","星期二","星期三","星期四","星期五","星期六","星期日"];
+const zWkO = a => zSh(WK.filter(d=>d!==a)).slice(0,3);
+const KIDS = ["小美","小華","小明","小安","小青","小文","小芬","小強"];
+const ANI = [["小貓","🐱"],["小狗","🐶"],["小兔","🐰"],["小熊","🐻"],["小鹿","🦌"],["小豬","🐷"],["小雞","🐥"],["老虎","🐯"],["貓熊","🐼"]];
+const zCoinsOf = v => { const c = []; for(const k of [10,5,1]) while(v>=k){ c.push(k); v -= k; } return c; };
+const zCoinsAlt = v => { const c = zCoinsOf(v); const i = c.indexOf(10); if(i>=0 && Math.random()<.4) c.splice(i,1,5,5); else { const j = c.indexOf(5); if(j>=0 && Math.random()<.4) c.splice(j,1,1,1,1,1,1); } return c.length<=7 ? c : zCoinsOf(v); };
+const zSum = c => c.reduce((a,b)=>a+b,0);
+const zRunC = c => { let s = 0; return c.map(x=>s+=x).join("、"); };
+const zZh = n => "正 ".repeat(Math.floor(n/5)).trim() + (n%5 ? " "+["","一","丅","下","止"][n%5] : "");
+// 三個東西排大小：a＞b＞c
+function zOrder(big, small, names, pic){
+  const [a,b,c] = zSh(names).slice(0,3), N = x => x[0];
+  const f1 = Math.random()<.5 ? `${N(a)}比${N(b)}${big}` : `${N(b)}比${N(a)}${small}`;
+  const f2 = Math.random()<.5 ? `${N(b)}比${N(c)}${big}` : `${N(c)}比${N(b)}${small}`;
+  const fs = Math.random()<.5 ? [f1,f2] : [f2,f1], askBig = Math.random()<.5;
+  return {t:`${fs.join("，")}。誰最${askBig?big:small}？`, p: pic ? pic(a,b,c) : zCmp([[N(a),N(b)],[N(b),N(c)]]),
+    a:N(askBig?a:c), o:[N(b),N(askBig?c:a)], e:`由${big}到${small}是：${N(a)}、${N(b)}、${N(c)}。`};
+}
+const zTrain = (cMin,cMax,minCar,maxCar) => { const c = zR(cMin,cMax), car = zR(minCar,maxCar), m = zR((car-1)*c+1, car*c);
+  return {t:`小火車每節坐 ${c} 個人，從第 1 節開始坐滿。第 ${m} 個人坐在第幾節？`, p:zBM([["🚃",Array.from({length:car},()=>[String(c),2])]]), a:car,
+    e:`每節 ${c} 個人：${zRun(c,c,car)}。第 ${m} 個人坐第 ${car} 節。`}; };
+const zSeatQ = (rMin,rMax) => { const r = zR(rMin,rMax), m = zR(2,3), k = zR(1,r), a = (m-1)*r+k;
+  return {t:`每排坐 ${r} 個人，從 1 號開始排。第 ${m} 排的第 ${k} 個是幾號？`, p:zSeat(m,r,a-1), a, e:`第 ${m-1} 排坐到 ${(m-1)*r} 號，再數~ ${k} 個，是 ${a} 號。`}; };
+const zRowQ = (rMin,rMax) => { const r = zR(rMin,rMax), rows = zR(3,4), x = zR((rows-1)*r+1, rows*r);
+  return {t:`每排坐 ${r} 個人，從 1 號開始排。${x} 號坐在第幾排？`, p:zSeat(rows,r,-1), a:rows, e:`每排 ${r} 個：${zRun(r,r,rows-1)} 是前 ${rows-1} 排，${x} 號在第 ${rows} 排。`}; };
+const zLeftQ = (ask) => { const [x,y,w] = zSh(KIDS).slice(0,3), T = zPk([["顆糖","🍬"],["張貼紙","⭐"],["支筆","✏️"],["片餅乾","🍪"]]), a = zR(1,5), b = zR(1,8-a), tot = 10;
+  return {t:`有 ${tot} ${T[0]}。${x}拿 ${a} ${T[0].slice(0,1)}，${y}拿 ${b} ${T[0].slice(0,1)}。還剩幾${T[0].slice(0,1)}？`, p:zBM([["",[[String(tot),8,"g"]]],["",[[String(a),zW8(a),"b"],[String(b),zW8(b),"b"],["?",zW8(tot-a-b),"q"]]]]),
+    a:tot-a-b, e:`一共拿走 ${a+b} ${T[0].slice(0,1)}，${tot} 分成 ${a+b} 和 ${tot-a-b}。`}; };
+const zPat = (minK,maxK) => { const pool = zPk([["⭐","🌙","☀️","🌈"],["🍎","🍌","🍇","🍊"],["🐶","🐱","🐰","🐻"],["🔴","🔵","🟡","🟢"]]);
+  const L = zR(3,4), uniq = zSh(pool).slice(0, L===4 && Math.random()<.5 ? 3 : L), pat = uniq.slice(); while(pat.length<L) pat.splice(zR(1,pat.length), 0, pat[zR(0,pat.length-1)]);
+  const k = zR(Math.max(minK,L+2), maxK), ans = pat[(k-1)%L], g = L*Math.floor((k-1)/L);
+  return {t:`照規律排下去，第 ${k} 個是什麼？`, p:zP(pat.join("")+pat.join("")+"…"), a:ans, o:[...new Set(pat)].filter(x=>x!==ans),
+    e:`${L} 個一組，第 ${g} 個是 ${pat[L-1]}，再往下數~ ${k-g} 個是 ${ans}。`}; };
+const zRot = (set) => { const st = zR(0,3), cw = Math.random()<.5, seq = Array.from({length:5},(_,i)=>set[(st+(cw?i:-i)+40)%4]), ans = set[(st+(cw?5:-5)+40)%4];
+  return {t:"下一個是什麼？", p:zP(seq.join("")+"❓"), a:ans, o:set.filter(x=>x!==ans), e:`一直向${cw?"右":"左"}轉。`}; };
+const zLetter = sym => { const S = ["A","H","M","O","T","U","V","W","X","Y"], N = ["F","G","J","L","N","P","R","S","Z","Q"];
+  const a = zPk(sym?S:N), o = zSh(sym?N:S).slice(0,3);
+  return {t:`哪一個從中間對摺後，兩邊${sym?"一樣":"不一樣"}？`, p:"", a, o, e:`${a} 從中間對摺，兩邊${sym?"一樣":"不一樣"}。`}; };
+const zCube = (rows, hidden) => { const cs = [], hs = [];
+  for(let y=0;y<rows;y++) for(let x=0;x<3;x++){ let h = zR(0, y===0 ? 3 : 2); if(x===0 && y===0) h = Math.max(h,1); hs.push(h); for(let z=0;z<h;z++) cs.push([x,y,z]); }
+  const lay = []; for(let z=0;z<3;z++){ const c = cs.filter(p=>p[2]===z).length; if(c) lay.push(c); }
+  return {t: hidden ? "一共有幾個積木？看不到的也要算。" : "一共有幾個積木？", p:zCubes(cs), a:cs.length, e:`一層一層數~：${lay.map(c=>c+" 個").join("、")}，一共 ${cs.length} 個。`}; };
+const zTwo = () => { if(Math.random()<.5){ const L = zSh(["🍎","🍓","🍒","🌹","🐞"]).slice(0,3), R = zSh(["🍌","🍋","🌽","⭐","🐥"]).slice(0,3);
+    return {t:"這樣分成兩堆，是看什麼來分的？", p:zP(L.join("")+"　｜　"+R.join("")), a:"顏色", o:["形狀","大小"], e:"一堆是紅色，一堆是黃色。"}; }
+  const c = zSh(["🔴","🔵","🟡","🟢","🟣"]).slice(0,3), s = c.map(x=>({"🔴":"🟥","🔵":"🟦","🟡":"🟨","🟢":"🟩","🟣":"🟪"})[x]);
+  return {t:"這樣分成兩堆，是看什麼來分的？", p:zP(c.join("")+"　｜　"+zSh(s).join("")), a:"形狀", o:["顏色","大小"], e:"一堆是圓形，一堆是正方形。"}; };
+const zShapeCnt = (kind) => { const it = Array.from({length:zR(7,9)},()=>zPk(["🔴","🟥","🔵","🟦"])), Q = zPk([["紅色的圓形","🔴"],["藍色的圓形","🔵"],["紅色的正方形","🟥"],["藍色的正方形","🟦"]]);
+  if(!it.includes(Q[1])) it[zR(0,it.length-1)] = Q[1]; const n = it.filter(x=>x===Q[1]).length;
+  return {t:`${Q[0]}有幾個？`, p:zP(it.join("")), a:n, e:`要${Q[0].slice(0,2)}，也要是${Q[0].slice(3)}，有 ${n} 個。`}; };
+const zEven = () => { const T = zR(7,12), d = zPk([1,2,3,4].filter(d=>(T-d)%2===0 && T-d>=2)), lo = (T-d)/2, hi = lo+d; return [T,d,lo,hi]; };
+
+const ZV = {
+"卓1-9": ()=>{ const B = zR(5,12), C = zR(2,6), a = Math.min(Math.floor(B/2),C);
+  return {t:"一個雪人要 2 顆雪球和 1 根紅蘿蔔。最多可以做幾個雪人？", p:zP(zRow("⚪",B)+"<br>"+zRow("🥕",C)), a,
+    e: Math.floor(B/2)<C ? `雪球 2 顆 2 顆圈起來，只能圈 ${Math.floor(B/2)} 次，可以做 ${a} 個。` : `紅蘿蔔只有 ${C} 根，雪球也夠，可以做 ${a} 個。`}; },
+"卓2-9": ()=>{ const a = zR(2,5), b = zR(a+3,a+7), [x,y] = zSh(KIDS).slice(0,2);
+  return {t:`${x}排第 ${a} 個，${y}排第 ${b} 個。他們中間有幾個人？`, p:zQ2(["#"+(a-1),"👧:"+a,"?","👦:"+b]), a:b-a-1, e:`中間是第 ${zRun(a+1,1,b-a-1)} 個，一共 ${b-a-1} 個人。`}; },
+"卓2-10": ()=>{ const N = zR(8,15), k = zR(2,N-3), A = zPk(ANI);
+  return {t:`有 ${N} 個人排隊。${A[0]}從前面數~是第 ${k} 個，從後面數~是第幾個？`, p:zQ2(["#"+(k-1),A[1]+":"+k,"?"])+zP("👥 "+N), a:N-k+1, e:`${A[0]}後面有 ${N-k} 個人，加上自己，從後面數~是第 ${N-k+1} 個。`}; },
+"卓2-11": ()=>{ const N = zR(7,14), k = zR(2,4), A = zPk(ANI);
+  return {t:`有 ${N} 個人排隊。${A[0]}從後面數~是第 ${k} 個，從前面數~是第幾個？`, p:zQ2(["?",A[1],"#"+(k-1)])+zP("👥 "+N), a:N-k+1, e:`${A[0]}後面有 ${k-1} 個人，前面有 ${N-k} 個人，所以是第 ${N-k+1} 個。`}; },
+"卓2-12": ()=>zTrain(3,5,2,2),
+"卓2-13": ()=>zTrain(4,5,3,4),
+"卓2-20": ()=>zTrain(5,6,3,4),
+"卓3-9": ()=>zLeftQ(),
+"卓3-10": ()=>zLeftQ(),
+"卓3-11": ()=>{ const r = zR(2,6), g = zR(4,8), k = zR(1,g-1), red = Math.random()<.5;
+  return {t:`有 ${r} 顆紅蘋果和 ${g} 顆綠蘋果。吃掉 ${k} 顆綠蘋果，綠蘋果還剩幾顆？`, p:zP(zRow("🍎",r)+"　"+zRow("🍏",g)), a:g-k, e:`只看綠蘋果：${g} 分成 ${k} 和 ${g-k}。`}; },
+"卓3-12": ()=>{ const c = zR(2,7), a = zR(1,10-c), b = zR(1,10-c);
+  return {t:`${a} 和 ● 合起來是 ${a+c}，● 和 ★ 合起來是 ${c+b}。★ 是多少？`, p:zTree(a+c,a,"●")+zTree(c+b,"●","★"), a:b, e:`先想 ● 是 ${c}，再想 ${c} 和 ${b} 合起來是 ${c+b}。`}; },
+"卓3-13": ()=>{ const ns = zSh(KIDS).slice(0,3), us = zSh([1,2,3,4,5,6,7,8,9]).slice(0,3), most = Math.random()<.5, i = us.indexOf(most?Math.min(...us):Math.max(...us));
+  return {t:`三個人都有 10 張貼紙。誰剩下最${most?"多":"少"}張？`, p:zP(`<div class="ztx zy">${ns.map((n,j)=>`${n} 用 ${us[j]} 張`).join("<br>")}</div>`), a:ns[i], o:ns.filter((_,j)=>j!==i),
+    e: most ? "用掉最少的人，剩下最多。" : "用掉最多的人，剩下最少。"}; },
+"卓4-8": ()=>{ const P = zR(11,19), it = zPk(["鉛筆","橡皮擦","貼紙","小汽車","髮夾"]), ok = zCoinsAlt(P);
+  const bad = zSh([P+1,P-1,P+5,P-5,P+2].filter(v=>v>0)).slice(0,3).map(v=>zCoin(...zCoinsAlt(v)));
+  return {t:`${it} ${P} 元。哪一種剛好？`, p:"", a:zCoin(...ok), o:bad, e:`${zRunC(ok)}，剛好 ${P} 元。`}; },
+"卓4-9": ()=>{ const P = zR(12,19), it = zPk(["直尺","筆記本","彩色筆","水壺"]), sh = zR(1,3), ok = zCoinsAlt(P-sh);
+  const good = zSh([P,P+1,P+2,P+5]).slice(0,3).map(v=>zCoin(...zCoinsAlt(v)));
+  return {t:`${it} ${P} 元。哪一種不夠？`, p:"", a:zCoin(...ok), o:good, e:`${zRunC(ok)}，只有 ${P-sh} 元，不夠。`}; },
+"卓4-10": ()=>{ const p = zR(2,9), it = zPk([["糖果","🍬"],["鉛筆","✏️"],["果汁","🧃"],["餅乾","🍪"]]);
+  return {t:`${it[0]} ${p} 元。付 10 元，要找回幾元？`, p:zP(`${it[1]} ${p}　⬅　${zCoin(10)}`), a:10-p, e:`10 分成 ${p} 和 ${10-p}，找回 ${10-p} 元。`}; },
+"卓4-11": ()=>{ const ns = zSh(["哥哥","姐姐","妹妹","弟弟"]).slice(0,3), vs = zSh([7,8,9,11,12,13,14,15,16]).slice(0,3), most = Math.random()<.5, i = vs.indexOf(most?Math.max(...vs):Math.min(...vs)), cs = vs.map(zCoinsAlt);
+  return {t:`誰的錢最${most?"多":"少"}？`, p:zP(ns.map((n,j)=>`<div class="ztl"><b class="zy">${n}</b>${zCoin(...cs[j])}</div>`).join("")), a:ns[i], o:ns.filter((_,j)=>j!==i),
+    e:ns.map((n,j)=>`${n} ${vs[j]} 元`).join("，")+"。"}; },
+"卓4-12": ()=>{ const its = zSh([["🧴","膠水"],["🔍","放大鏡"],["✂️","剪刀"],["📏","尺"],["🖍️","蠟筆"],["📒","本子~"]]).slice(0,3), vs = zSh([6,7,8,9,11,12,13,14]).slice(0,3), most = Math.random()<.5, i = vs.indexOf(most?Math.max(...vs):Math.min(...vs));
+  return {t:`哪一樣最${most?"貴":"便宜"}？`, p:zP(its.map((x,j)=>`<div class="ztl"><b>${x[0]}</b>${zCoin(...zCoinsAlt(vs[j]))}</div>`).join("")), a:its[i][0], o:its.filter((_,j)=>j!==i).map(x=>x[0]),
+    e:its.map((x,j)=>`${x[1]} ${vs[j]} 元`).join("，")+"。"}; },
+"卓4-13": ()=>{ const n = zR(3,5), k = zR(1,n-1), ok = new Set(Array.from({length:n+1},(_,i)=>9*i+n)), a = 9*k+n;
+  const o = zSh([a+1,a-1,a+5,a-5,5,a+10,n+5].filter(v=>v>0 && !ok.has(v))).filter((v,i,s)=>s.indexOf(v)===i).slice(0,3);
+  return {t:`錢包裡只有 10 元和 1 元，一共 ${n} 個硬幣。可能是多少元？`, p:"", a:`${a} 元`, o:o.map(v=>`${v} 元`), e:`${k} 個 10 元和 ${n-k} 個 1 元，是 ${a} 元。`}; },
+"卓4-14": ()=>{ const P = zR(6,14), a = Math.floor(P/5)+P%5;
+  return {t:`有 5 元和 1 元。要付 ${P} 元，最少要幾個硬幣？`, p:zP(`${zCoin(5,1)}　➜　${P}`), a, e:`${Math.floor(P/5)} 個 5 元${P%5?`和 ${P%5} 個 1 元`:""}，一共 ${a} 個。`}; },
+"卓4-15": ()=>ZV.zCoinMin(11,19),
+"卓4-16": ()=>ZV.zCoinMin(20,39),
+zCoinMin: (lo,hi)=>{ const P = zR(lo,hi), c = zCoinsOf(P), t = Math.floor(P/10), f = Math.floor(P%10/5), o = P%5;
+  return {t:`有 10 元、5 元和 1 元。要付 ${P} 元，最少要幾個硬幣？`, p:zP(`${zCoin(10,5,1)}　➜　${P}`), a:c.length, e:[t?`${t} 個 10 元`:"",f?`${f} 個 5 元`:"",o?`${o} 個 1 元`:""].filter(Boolean).join("、")+`，一共 ${c.length} 個。`}; },
+"卓4-17": ()=>{ const a = zR(6,13), b = zR(2,19-a), I = zSh([["筆","✏️"],["尺","📏"],["擦子~","🧽"],["糖","🍬"]]).slice(0,2);
+  return {t:`${I[0][0]} ${a} 元，${I[1][0]} ${b} 元。付 20 元，要找回幾元？`, p:zP(`${I[0][1]} ${a}　${I[1][1]} ${b}　⬅　${zCoin(10,10)}`), a:20-a-b, e:`一共 ${a+b} 元，20 比 ${a+b} 多 ${20-a-b}。`}; },
+"卓4-18": ()=>{ const tens = zR(1,2), five = zR(0,1), T = tens*10+five*5, b = zR(T-9, T-1), n = zPk(KIDS);
+  const coins = [...Array(tens).fill(10), ...Array(five).fill(5)];
+  return {t:`${n}有 ${tens} 個 10 元${five?"和 1 個 5 元":""}，買 ${b} 元的書。還剩幾元？`, p:zP(`👛 ${zCoin(...coins)}　📕 ${b}`), a:T-b, e:`一共 ${T} 元，${T} 比 ${b} 多 ${T-b}。`}; },
+"卓4-19": ()=>{ const k = zR(2,3), m = zR(1,8), A = 5*k, B = 10+m, ans = A>B ? "哥哥" : A<B ? "姐姐" : "一樣多";
+  return {t:`哥哥有 ${k} 個 5 元，姐姐有 1 個 10 元和 ${m} 個 1 元。誰的錢比較多？`, p:zP(`<div class="ztl"><b>👦</b>${zCoin(...Array(k).fill(5))}</div><div class="ztl"><b>👧</b>${zCoin(10,...Array(m).fill(1))}</div>`), a:ans, o:["哥哥","姐姐","一樣多"].filter(x=>x!==ans), e:`哥哥 ${A} 元，姐姐 ${B} 元。`}; },
+"卓4-20": ()=>{ const all = [[10,10,5],[10,10,1],[10,5,5],[10,5,1],[10,1,1],[5,5,5],[5,5,1],[5,1,1]], s = zSh(all), ok = s[0], v = zSum(ok);
+  return {t:`3 個硬幣合起來是 ${v} 元。是哪一組？`, p:"", a:zCoin(...ok), o:s.slice(1,4).map(c=>zCoin(...c)), e:`${zRunC(ok)}，合起來是 ${v} 元。`}; },
+"卓5-4": ()=>zOrder("長","短",[["ㄅ"],["ㄆ"],["ㄇ"]]),
+"卓5-5": ()=>zOrder("高","矮",[["大樹"],["小樹"],["小草"],["房子~"],["電線桿"]]),
+"卓5-7": ()=>{ const L = ["ㄅ","ㄆ","ㄇ"], w = zSh([26,42,64]), most = Math.random()<.5, i = w.indexOf(most?64:26);
+  return {t:`水一樣高。哪一杯的水最${most?"多":"少"}？`, p:zCups(L.map((k,j)=>[k,w[j],76,44])), a:L[i], o:L.filter((_,j)=>j!==i), e:`水一樣高，杯子~越${most?"粗":"細"}，水就越${most?"多":"少"}。`}; },
+"卓5-8": ()=>{ const a = zR(2,8), b = Math.random()<.2 ? a : zPk([2,3,4,5,6,7,8,9].filter(x=>x!==a)), more = Math.random()<.6, ans = a===b ? "一樣多" : (a>b)===more ? "水瓶" : "水壺";
+  return {t:`水瓶可以倒滿 ${a} 杯，水壺可以倒滿 ${b} 杯。杯子~一樣大，誰裝得~${more?"多":"少"}？`, p:zP(`<div class="ztl"><b>🍶</b>${zRow("🥛",a)}</div><div class="ztl"><b>🫖</b>${zRow("🥛",b)}</div>`), a:ans, o:["水瓶","水壺","一樣多"].filter(x=>x!==ans),
+    e:a===b ? "杯數一樣，裝得~一樣多。" : `倒出的杯數越${more?"多":"少"}，裝的水越${more?"多":"少"}。`}; },
+"卓5-12": ()=>{ const R = zOrder("重","輕",ANI.map(x=>[x[0],x[1]]), (a,b,c)=>zP(zBal(b[1],c[1],-1)+zBal(a[1],b[1],-1)));
+  return R; },
+"卓5-13": ()=>zOrder("重","輕",ANI.map(x=>[x[0]])),
+"卓5-14": ()=>{ const k = zR(2,5), n = zR(2,3);
+  return {t:`1 個西瓜和 ${k} 顆蘋果一樣重。${n} 個西瓜和幾顆蘋果一樣重？`, p:zP(`🍉 ＝ ${zRow("🍎",k)}<br>${zRow("🍉",n)} ＝ ？`), a:k*n, e:`${zRun(k,k,n)}，一共 ${k*n} 顆。`}; },
+"卓5-18": ()=>zOrder("高","矮",KIDS.map(x=>[x])),
+"卓5-19": ()=>{ const m = zR(2,3), k = zR(2,4);
+  return {t:`1 個西瓜和 ${m} 個木瓜一樣重，1 個木瓜和 ${k} 顆蘋果一樣重。1 個西瓜和幾顆蘋果一樣重？`, p:zP(`🍉 ＝ ${zRow("🥭",m)}<br>🥭 ＝ ${zRow("🍎",k)}`), a:m*k, e:`${m} 個木瓜是 ${zRun(k,k,m)}，一共 ${m*k} 顆。`}; },
+"卓5-20": ()=>{ const d = zR(0,6), n = zPk([7,14]), a = WK[(d+n)%7];
+  return {t:`今天${WK[d]}，再過 ${n} 天是星期幾？`, p:zWeek(d), a, o:zWkO(a), e:`${n===7?"7 天是一個星期":"14 天是兩個星期"}，又回到${a}。`}; },
+"卓5-21": ()=>{ const d = zR(3,6), n = zR(2,5), a = WK[(d+n)%7];
+  return {t:`今天${WK[d]}，再過 ${n} 天是星期幾？`, p:zWeek(d), a, o:zWkO(a), e:`往後數~ ${n} 天：${Array.from({length:n},(_,i)=>WK[(d+i+1)%7]).join("、")}。`}; },
+"卓5-22": ()=>{ const d = zR(0,6), n = zR(8,11), a = WK[(d+n)%7];
+  return {t:`今天${WK[d]}，再過 ${n} 天是星期幾？`, p:zWeek(d), a, o:zWkO(a), e:`過 7 天還是${WK[d]}，再過 ${n-7} 天是${a}。`}; },
+"卓5-23": ()=>{ const n = zR(3,6), bigA = Math.random()<.5, more = Math.random()<.6, ans = bigA===more ? "ㄅ" : "ㄆ";
+  return {t:`ㄅ 壺倒滿 ${n} ${bigA?"大":"小"}杯，ㄆ 壺倒滿 ${n} ${bigA?"小":"大"}杯。哪一壺裝得~${more?"多":"少"}？`, p:zP(`<div class="ztl"><b>ㄅ</b><span style="font-size:${bigA?40:20}px">${zRow("🥤",n)}</span></div><div class="ztl"><b>ㄆ</b><span style="font-size:${bigA?20:40}px">${zRow("🥤",n)}</span></div>`), a:ans, o:[ans==="ㄅ"?"ㄆ":"ㄅ","一樣多"],
+    e:`杯數一樣，杯子~${more?"大":"小"}的裝得~${more?"多":"少"}。`}; },
+"卓5-24": ()=>{ const a = zR(5,9), d = zR(1,3);
+  return {t:`ㄅ 有 ${a} 格長，ㄆ 比 ㄅ 短 ${d} 格。兩條一共有幾格？`, p:zBM([["ㄅ",[[String(a),a]]],["ㄆ",[["?",a-d,"q"],[String(d),d,"x"]]]]), a:2*a-d, e:`ㄆ 有 ${a-d} 格，${a} 和 ${a-d} 合起來是 ${2*a-d}。`}; },
+"卓6-6": ()=>zShapeCnt(),
+"卓6-7": ()=>zShapeCnt(),
+"卓6-8": ()=>zTwo(),
+"卓6-20": ()=>zTwo(),
+"卓6-11": ()=>{ const A = zSh([["🦁","獅子~"],["🦒","長頸鹿"],["🐘","大象"],["🐵","猴子~"]]).slice(0,3), v = A.map(()=>zR(2,7)), s = zSum(v);
+  return {t:"一共有幾票？", p:zTally(A.map((x,j)=>[x[0],v[j]])), a:s, e:`${v[0]} 和 ${v[1]} 是 ${v[0]+v[1]}，${v[0]+v[1]} 再加 ${v[2]} 是 ${s}。`}; },
+"卓6-13": ()=>{ const n = zR(6,14), F = zPk([["🍌","香蕉"],["🍎","蘋果"],["🍓","草莓"],["🍊","橘子~"]]), g = Math.floor(n/5);
+  return {t:`一個正字是 5。${F[1]}有幾個？`, p:zP(`<div class="ztl"><b>${F[0]}</b><span class="zzh">${zZh(n)}</span></div>`), a:n, e:`${zRun(5,5,g)}${n%5?`，再加 ${n%5} 是 ${n}`:""}。`}; },
+"卓6-14": ()=>{ const T = zR(8,12), a = zR(2,5), b = zR(1,Math.min(5,T-a-1)), A = zSh(ANI).slice(0,3);
+  return {t:`一共 ${T} 個人投票。${A[0][0]} ${a} 票，${A[1][0]} ${b} 票，其他都投${A[2][0]}。${A[2][0]}有幾票？`, p:zP(`👥 ${T}<div class="ztl"><b>${A[0][1]}</b><span>${"○".repeat(a)}</span></div><div class="ztl"><b>${A[1][1]}</b><span>${"○".repeat(b)}</span></div><div class="ztl"><b>${A[2][1]}</b><span>?</span></div>`), a:T-a-b,
+    e:`${A[0][0]}和${A[1][0]}一共 ${a+b} 票，${T} 分成 ${a+b} 和 ${T-a-b}。`}; },
+"卓6-15": ()=>{ const a = zR(2,6), d = zR(1,4);
+  return {t:`藍色的有 ${a} 個，紅色的比藍色的多 ${d} 個。一共有幾個？`, p:zBM([["🔵",[[String(a),zW8(a)]]],["🔴",[[String(a),zW8(a)],[String(d),zW8(d),"b"]]]]), a:2*a+d, e:`紅色 ${a+d} 個，${a+d} 和 ${a} 合起來是 ${2*a+d}。`}; },
+"卓6-16": ()=>{ const a = zR(2,5), d1 = zR(1,3), d2 = zR(1,a+d1-1), A = zSh(ANI).slice(0,3), c = a+d1;
+  return {t:`${A[0][0]}有 ${a} 票，${A[1][0]}比${A[0][0]}多 ${d1} 票，${A[2][0]}比${A[1][0]}少 ${d2} 票。${A[2][0]}有幾票？`, p:zBM([[A[0][1],[[String(a),zW8(a)]]],[A[1][1],[[String(a),zW8(a)],[String(d1),zW8(d1),"b"]]],[A[2][1],[["?",zW8(c-d2),"q"],[String(d2),zW8(d2),"x"]]]]), a:c-d2,
+    e:`${A[1][0]} ${c} 票，${A[2][0]}比 ${c} 少 ${d2}，是 ${c-d2} 票。`}; },
+"卓6-17": ()=>{ const T = zR(12,16), a = zR(4,7), d = zR(1,3), b = a-d, A = zSh(ANI).slice(0,3);
+  if(T-a-b<1) return ZV["卓6-17"]();
+  return {t:`一共 ${T} 個人投票。${A[0][0]} ${a} 票，${A[1][0]}比${A[0][0]}少 ${d} 票，其他都投${A[2][0]}。${A[2][0]}有幾票？`, p:zP("👥 "+T)+zBM([[A[0][1],[[String(a),zW8(a)]]],[A[1][1],[["?",zW8(b),"q"],[String(d),zW8(d),"x"]]],[A[2][1],[["?",3,"q"]]]]), a:T-a-b,
+    e:`${A[1][0]} ${b} 票，${a} 和 ${b} 是 ${a+b}，${T} 比 ${a+b} 多 ${T-a-b}。`}; },
+"卓6-18": ()=>{ const x = zR(8,15), y = zR(3,x-1), F = zSh([["🍎","蘋果"],["🍌","香蕉"],["🍓","草莓"],["🍊","橘子~"]]).slice(0,2);
+  return {t:`一個正字是 5。${F[0][1]}比${F[1][1]}多幾個？`, p:zP(`<div class="ztl"><b>${F[0][0]}</b><span class="zzh">${zZh(x)}</span></div><div class="ztl"><b>${F[1][0]}</b><span class="zzh">${zZh(y)}</span></div>`), a:x-y,
+    e:`${F[0][1]} ${x} 個，${F[1][1]} ${y} 個，${x} 比 ${y} 多 ${x-y}。`}; },
+"卓6-19": ()=>{ const it = Array.from({length:8},()=>zPk(["🔴","🟥","🔺","🔵","🟦"])), Q = zPk([["圓形",["🔴","🔵"]],["正方形",["🟥","🟦"]],["三角形",["🔺"]]]);
+  const y = it.filter(x=>Q[1].includes(x)).length;
+  return {t:`不是${Q[0]}的有幾個？`, p:zP(it.join("")), a:8-y, e:`一共 8 個，${Q[0]}有 ${y} 個，不是${Q[0]}的有 ${8-y} 個。`}; },
+"卓7-10": ()=>zCube(1,false),
+"卓7-11": ()=>zCube(2,true),
+"卓7-17": ()=>zCube(2,true),
+"卓7-14": ()=>{ const E = zSh([["🍎","蘋果"],["🍌","香蕉"],["🍪","餅乾"],["🧃","果汁"],["🍓","草莓"]]).slice(0,3), [X,Y,Zz] = E, right = Math.random()<.5;
+  const perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].map(p=>p.map(i=>E[i]));
+  const good = perms.filter(p=>{ const ix = p.indexOf(X), iy = p.indexOf(Y); return right ? ix===iy+1 : ix===iy-1; }), bad = perms.filter(p=>{ const ix = p.indexOf(X), iy = p.indexOf(Y); return right ? ix<iy : ix>iy; });
+  const g = zPk(good), S = p=>p.map(x=>x[0]).join("");
+  return {t:`哪一個是：${X[1]}在${Y[1]}的${right?"右":"左"}邊？`, p:"", a:S(g), o:bad.map(S), e:`先找${Y[1]}，${Y[1]}的${right?"右":"左"}邊要是${X[1]}。`}; },
+"卓7-15": ()=>zLetter(true),
+"卓7-16": ()=>zLetter(false),
+"卓7-19": ()=>{ const a = zR(1,3), b = zR(1,2), c = zR(0,1);
+  return {t:`${a} 個三角形${c?`、${b} 個正方形和 1 個長方形`:`和 ${b} 個正方形`}，一共有幾個角？`, p:zP(zShape("tri").repeat(a)+zShape("squ").repeat(b)+(c?zShape("rec"):"")), a:3*a+4*b+4*c,
+    e:`三角形 3 個角，正方形${c?"和長方形":""}都是 4 個角：${3*a} 再加 ${4*(b+c)} 是 ${3*a+4*b+4*c}。`}; },
+"卓7-20": ()=>{ const [p0,p1,p2] = zSh(ANI).slice(0,3), f1 = Math.random()<.5 ? `${p1[0]}在${p2[0]}的左邊` : `${p2[0]}在${p1[0]}的右邊`, f2 = Math.random()<.5 ? `${p0[0]}在${p1[0]}的左邊` : `${p1[0]}在${p0[0]}的右邊`, R = Math.random()<.5, ans = R ? p2 : p0;
+  return {t:`${f1}，${f2}。最${R?"右":"左"}邊是誰？`, p:zP(`${p1[1]} ${p2[1]}<br>${p0[1]} ${p1[1]}`), a:ans[0], o:[p0,p1,p2].filter(x=>x!==ans).map(x=>x[0]), e:`由左到右是${p0[0]}、${p1[0]}、${p2[0]}。`}; },
+"卓7-21": ()=>{ const A = ["⬆️","➡️","⬇️","⬅️"], st = zR(0,3), n = zR(1,3), R = Math.random()<.5, ans = A[(st+(R?n:-n)+8)%4];
+  return {t:`箭頭向${R?"右":"左"}轉 ${n} 次，變成哪一個？`, p:zP(A[st]), a:ans, o:A.filter(x=>x!==ans), e:`向${R?"右":"左"}轉：${Array.from({length:n},(_,i)=>A[(st+(R?i+1:-(i+1))+8)%4]).join("、")}。`}; },
+"卓8-5": ()=>{ const d = zR(2,4), down = Math.random()<.6, s = down ? zR(4*d+2, 25) : zR(1,9), q = Array.from({length:4},(_,i)=>s+(down?-d:d)*i), a = s+(down?-d:d)*4;
+  return {t:"下一個數是多少？", p:zSeq(q.join("、")+"、？"), a, e:`每次${down?"少":"多"} ${d}。`}; },
+"卓8-6": ()=>{ const d = zR(2,4), down = Math.random()<.6, s = down ? zR(4*d+2, 24) : zR(1,8), q = Array.from({length:5},(_,i)=>s+(down?-d:d)*i);
+  return {t:"？ 是多少？", p:zSeq("？、"+q.slice(1).join("、")), a:s, e:`往右每次${down?"少":"多"} ${d}，所以往左要${down?"多":"少"} ${d}。`}; },
+"卓8-9": ()=>{ const s = zR(1,2), k = zR(1,2), F = zPk(["🌸","⭐","🍎","🎈"]), a = s+3*k;
+  return {t:`下一個是幾${F==="🌸"?"朵花":F==="⭐"?"顆星星":F==="🍎"?"顆蘋果":"個氣球"}？`, p:zP([0,1,2].map(i=>zRow(F,s+k*i)).join(" → ")+" → ❓"), a, e:`${zRun(s,k,3)}，每次多 ${k} 個，下一個是 ${a}。`}; },
+"卓8-10": ()=>zRot(["⬆️","➡️","⬇️","⬅️"]),
+"卓8-11": ()=>zRot(["▲","▶","▼","◀"]),
+"卓8-12": ()=>zPat(7,10),
+"卓8-13": ()=>zPat(10,15),
+"卓8-18": ()=>zPat(12,16),
+"卓8-19": ()=>zPat(16,21),
+"卓8-14": ()=>{ const c = zR(1,5), s = zR(1,4), d = zR(1,3), xs = [s,s+d,s+2*d];
+  return {t:"？ 是多少？", p:zSeq(`${c}、${xs[0]}、${c}、${xs[1]}、${c}、${xs[2]}、${c}、？`), a:s+3*d, e:`隔一個看：${xs.join("、")}，每次多 ${d}。`}; },
+"卓8-15": ()=>{ const s = zR(1,4), d = zR(1,2), C = zSh(["🟥","🟦","🟨","🟩"]).slice(0,2), n = s+4*d;
+  return {t:"下一個是什麼？", p:zP([0,1,2,3].map(i=>`${s+d*i}${C[i%2]}`).join(" ")+" ❓"), a:`${n}${C[0]}`, o:[`${n}${C[1]}`,`${n-1}${C[0]}`,`${n+1}${C[1]}`], e:`數字每次多 ${d}，顏色輪流出現。`}; },
+"卓8-16": ()=>{ const s = zR(1,5), st = zR(1,2), q = [s]; for(let i=0;i<3;i++) q.push(q[i]+st+i); const a = q[3]+st+3;
+  return {t:"？ 是多少？", p:zSeq(q.join("、")+"、？"), a, e:`多 ${st}、多 ${st+1}、多 ${st+2}，接著多 ${st+3}。`}; },
+"卓8-21": ()=>{ const s = zR(1,9), q = [s]; for(let i=0;i<4;i++) q.push(q[i]+i+1); const a = q[4]+5;
+  return {t:"？ 是多少？", p:zSeq(q.join("、")+"、？"), a, e:"多 1、多 2、多 3、多 4，接著多 5。"}; },
+"卓8-17": ()=>{ const k = zR(2,9);
+  return {t:`一條緞帶剪 1 刀變成 2 段。剪 ${k} 刀變成幾段？`, p:zP(`━━✂️━━　➜　2<br>✂️ × ${k}　➜　?`), a:k+1, e:`每剪 1 刀多 1 段，段數比刀數多 1，是 ${k+1} 段。`}; },
+"卓8-20": ()=>{ const L = zR(2,4), m = zR(3,5), O = zPk(["🌙","🍎","🔵"]), pat = ["⭐",...Array(L-1).fill(O)];
+  return {t:`照規律排下去，前 ${L*m} 個裡有幾個 ⭐？`, p:zP(pat.join("")+pat.join("")+"…"), a:m, e:`${L} 個一組有 1 個星星，${L*m} 個是 ${m} 組。`}; },
+"卓8-22": ()=>{ const [q,a] = zPk([[[1,2,4,8],16],[[2,4,8],16],[[3,6,12],24],[[5,10,20],40]]);
+  return {t:"？ 是多少？", p:zSeq(q.join("、")+"、？"), a, e:`每一個都是前一個的 2 個那麼多，${q[q.length-1]} 和 ${q[q.length-1]} 是 ${a}。`}; },
+"卓8-23": ()=>{ const a = zR(8,15), b = zR(1,4);
+  return {t:"？ 是多少？", p:zSeq(`${a}、${b}、${a-1}、${b+1}、${a-2}、${b+2}、？`), a:a-3, e:`隔一個看：${a}、${a-1}、${a-2}，接著是 ${a-3}。`}; },
+"卓8-24": ()=>{ const S = zSh(["🔴","🟦","🔺","🟡","⭐"]).slice(0,3), N = zSh([1,2,3,4,5]).slice(0,3), g = [0,1,2].map(i=>N[i]+S[i]);
+  return {t:"下一個是什麼？", p:zP([g[0],g[1],g[2],g[0],g[1]].join(" ")+" ❓"), a:g[2], o:[N[2]+S[0],N[0]+S[2],N[1]+S[2]], e:"數字和形狀都是 3 個一組。"}; },
+"卓8-26": ()=>{ const n = zR(4,9), T = zPk([["根棒子~","每兩根中間放 1 顆球","放幾顆球","顆"],["棵樹","每兩棵中間種 1 朵花","種幾朵花","朵"]]);
+  return {t:`${n} ${T[0]}排成一排，${T[1]}。一共${T[2]}？`, p:zP(T[3]==="顆" ? "🥢 ⚪ 🥢 ⚪ 🥢 …<br>🥢 × "+n : "🌳 🌷 🌳 🌷 🌳 …<br>🌳 × "+n), a:n-1, e:`${n} ${T[0].slice(0,1)}中間有 ${n-1} 個地方，${T[2].slice(0,1)} ${n-1} ${T[3]}。`}; },
+"卓9-4": ()=>{ const N = zR(6,12), a = zR(1,N-2), b = zR(1,5);
+  return {t:`車上有 ${N} 個人。下車 ${a} 個，上車 ${b} 個。現在有幾個人？`, p:zArr([`🚌 ${N}`,`⬇️ ${a}`,`⬆️ ${b}`,"🚌 ?"]), a:N-a+b, e:`${N} 少 ${a} 是 ${N-a}，${N-a} 多 ${b} 是 ${N-a+b}。`}; },
+"卓9-5": ()=>{ const p = zR(2,5), q = zR(2,4), F = zPk([["🍓","草莓","顆"],["🍪","餅乾","片"],["🍊","橘子~","個"]]);
+  return {t:`${p} 個盤子~，每盤有 ${q} ${F[2]}${F[1]}。一共有幾${F[2]}？`, p:zP(Array(p).fill(zRow(F[0],q)).join("　")), a:p*q, e:`${zRun(q,q,p)}，一共 ${p*q} ${F[2]}。`}; },
+"卓9-6": ()=>{ const c = zR(2,4), M = zPk([10,12]), a = Math.floor(M/c);
+  return {t:`糖果 1 顆 ${c} 元。${M} 元最多可以買幾顆？`, p:zP(`🍬 ＝ ${c}　👛 ${zCoin(...zCoinsOf(M))}`), a, e:`${zRun(c,c,a)}，可以買 ${a} 顆${M%c?`，剩下 ${M%c} 元不夠再買`:""}。`}; },
+"卓9-7": ()=>{ const P = zR(3,7), S = zR(4,12), a = Math.min(P, Math.floor(S/2));
+  return {t:`一張卡片要 1 張紙和 2 顆星星。有 ${P} 張紙、${S} 顆星星，最多做幾張？`, p:zP(`🃏 ＝ 📄 ＋ ⭐⭐<br>📄 × ${P}　⭐ × ${S}`), a,
+    e: Math.floor(S/2)<P ? `${S} 顆星星只夠做 ${a} 張。` : `紙只有 ${P} 張，星星也夠，可以做 ${a} 張。`}; },
+"卓9-8": ()=>{ const A = zSh(ANI).slice(0,3), q = zPk([["左邊有 2 個人",2],["右邊有 2 個人",0],["左邊有 1 個人",1],["右邊沒有人",2]]), ans = A[q[1]];
+  return {t:`三個人由左到右坐。誰的${q[0]}？`, p:zP(A.map(x=>x[1]).join("")), a:ans[1], o:A.filter(x=>x!==ans).map(x=>x[1]), e:`由左到右是${A.map(x=>x[0]).join("、")}，答案是${ans[0]}。`}; },
+"卓9-9": ()=>zOrder("快","慢",[["小白"],["小黑"],["小花"],["小灰"]]),
+"卓9-10": ()=>zSeatQ(3,4),
+"卓9-11": ()=>zRowQ(3,4),
+"卓2-18": ()=>zSeatQ(4,5),
+"卓2-19": ()=>zRowQ(4,5),
+"卓9-12": ()=>{ const [T,d,lo,hi] = zEven();
+  return {t:`紅珠和藍珠一共 ${T} 顆，紅珠比藍珠多 ${d} 顆。藍珠有幾顆？`, p:zBM([["🔴",[["?",3],[String(d),1.6,"b"]]],["🔵",[["?",3]]]])+zP(String(T)), a:lo, e:`藍 ${lo} 顆、紅 ${hi} 顆，一共 ${T} 顆，紅多 ${d} 顆。`}; },
+"卓9-13": ()=>{ const [T,d,lo,hi] = zEven();
+  return {t:`紅珠和藍珠一共 ${T} 顆，紅珠比藍珠多 ${d} 顆。紅珠有幾顆？`, p:zBM([["🔴",[["?",3],[String(d),1.6,"b"]]],["🔵",[["?",3]]]])+zP(String(T)), a:hi, e:`紅 ${hi} 顆、藍 ${lo} 顆，一共 ${T} 顆，紅多 ${d} 顆。`}; },
+"卓9-14": ()=>{ const me_ = zR(6,9), b = zR(1,4), c = zR(1,me_-3);
+  return {t:`我 ${me_} 歲。哥哥比我大 ${b} 歲，弟弟比我小 ${c} 歲。哥哥比弟弟大幾歲？`, p:zBM([["🧒",[[String(me_),zW8(me_)]]],["👦",[[String(me_),zW8(me_)],[String(b),zW8(b),"b"]]],["👶",[["?",zW8(me_-c),"q"],[String(c),zW8(c),"x"]]]]), a:b+c,
+    e:`哥哥 ${me_+b} 歲，弟弟 ${me_-c} 歲，差 ${b+c} 歲。`}; },
+"卓1-13": ()=>{ const k = zPk([2,5,10]), n = zR(3,5), F = zPk([["🍬","盒","顆糖"],["🖍️","盒","支蠟筆"],["🍪","包","片餅乾"]]);
+  return {t:`每${F[1]}有 ${k} ${F[2]}。${n} ${F[1]}一共有幾${F[2].slice(0,1)}？`, p:zBM([[F[0],Array.from({length:n},()=>[String(k),2])],["",[["?",2*n,"q"]]]]), a:k*n, e:`${zRun(k,k,n)}，一共 ${k*n} ${F[2].slice(0,1)}。`}; },
+"卓1-14": ()=>{ const k = zPk([2,5,10]), n = zR(3,6);
+  return {t:`${k} 個 ${k} 個數~，從 ${k} 開始。第 ${n} 次數~到多少？`, p:zBM([["",[...Array.from({length:n-1},()=>[String(k),2]),["?",2,"q"]]]]), a:k*n, e:`${zRun(k,k,n)}。`}; },
+"卓1-15": ()=>{ const k = zPk([2,5,10]), n = zR(3,6), T = k*n;
+  return {t:`${k} 個 ${k} 個數~，從 ${k} 開始。數~到 ${T}，一共數~了幾次？`, p:zBM([["",[[String(k),1.6],[String(k),1.6],["…",1.6,"q"],[String(T),1.6,"g"]]]]), a:n, e:`${zRun(k,k,n)}，一共 ${n} 次。`}; },
+"卓1-16": ()=>{ const a = zR(10,15), b = zR(2,4), c = zR(a+b+2, 20);
+  return {t:`比 ${a} 多 ${b} 的數，比 ${c} 少多少？`, p:zBM([["",[[String(c),9,"g"]]],["",[[String(a),6],[String(b),1.4,"b"],["?",1.6,"q"]]]]), a:c-a-b, e:`先想 ${a} 多 ${b} 是 ${a+b}，${c} 比 ${a+b} 多 ${c-a-b}。`}; },
+"卓1-17": ()=>{ const a = zR(20,60), g = zR(4,8), b = a+g;
+  return {t:`${a} 和 ${b} 的中間，有幾個數？`, p:zBM([["",[[String(a),1.6,"g"],["?",4,"q"],[String(b),1.6,"g"]]]]), a:g-1, e:`${zRun(a+1,1,g-1)}，一共 ${g-1} 個。`}; },
+"卓1-18": ()=>{ const y = zR(1,6), d = zPk([2,4,6]), x = y+d, [p,q] = zPk([["哥哥","妹妹"],["姐姐","弟弟"]]);
+  return {t:`${p}有 ${x} 顆糖，${q}有 ${y} 顆。${p}要給${q}幾顆，兩人才一樣多？`, p:zBM([["",[[String(x),zW8(x)]]],["",[[String(y),zW8(y),"b"]]]]), a:d/2, e:`給 ${d/2} 顆後，兩人都是 ${y+d/2} 顆。`}; },
+"卓2-14": ()=>{ const k = zR(3,8), n = zPk(KIDS);
+  return {t:`${n}從前面數~是第 ${k} 個，從後面數~也是第 ${k} 個。一共有幾個人？`, p:zQ2(["?",`👧:${k} ↔ ${k}`,"?"]), a:2*k-1, e:`前面 ${k-1} 個、後面 ${k-1} 個，加上${n}是 ${2*k-1} 個。`}; },
+"卓2-15": ()=>{ const a = zR(2,7), b = zR(2,7), A = zPk(ANI);
+  return {t:`${A[0]}前面有 ${a} 個人，後面有 ${b} 個人。一共有幾個人？`, p:zQ2(["#"+a,A[1],"#"+b]), a:a+b+1, e:`${a} 和 ${b} 是 ${a+b}，要加上${A[0]}是 ${a+b+1}。`}; },
+"卓2-16": ()=>{ const f = zR(2,7), b = zR(2,7), A = zPk(ANI);
+  return {t:`${A[0]}從前面數~是第 ${f} 個，從後面數~是第 ${b} 個。一共有幾個人？`, p:zQ2(["?",`${A[1]}:${f} ↔ ${b}`,"?"]), a:f+b-1, e:`前面 ${f-1} 個、後面 ${b-1} 個，加上${A[0]}是 ${f+b-1} 個。`}; },
+"卓2-17": ()=>{ const N = zR(10,15), k1 = zR(2,6), k2 = zR(k1+3, Math.min(N-1,k1+7)), [A,B] = zSh(ANI).slice(0,2);
+  return {t:`一排有 ${N} 個人。從前面數~，${A[0]}是第 ${k1} 個，${B[0]}是第 ${k2} 個。他們中間有幾個人？`, p:zQ2(["#"+(k1-1),`${A[1]}:${k1}`,"?",`${B[1]}:${k2}`,"#"+(N-k2)]), a:k2-k1-1, e:`中間是第 ${zRun(k1+1,1,k2-k1-1)} 個，一共 ${k2-k1-1} 個人。`}; },
+"卓3-14": ()=>{ const c = zR(1,4), s = zR(1,4), T = 2*c+s;
+  return {t:`● 和 ● 和 ★ 合起來是 ${T}，★ 是 ${s}。● 是多少？`, p:zBM([["",[[String(T),8,"g"]]],["",[["●",3.2],["●",3.2],["★ "+s,1.6,"b"]]]]), a:c, e:`${T} 分成 ${s} 和 ${2*c}，${2*c} 分成 ${c} 和 ${c}。`}; },
+"卓3-15": ()=>{ const st = zR(1,5), c = zR(1,5);
+  return {t:`★ 和 ★ 合起來是 ${2*st}，★ 和 ● 合起來是 ${st+c}。● 是多少？`, p:zBM([[String(2*st),[["★",3],["★",3]]],[String(st+c),[["★",3],["●",2.4,"q"]]]]), a:c, e:`★ 是 ${st}，${st} 和 ${c} 合起來是 ${st+c}。`}; },
+"卓3-16": ()=>{ const k = zR(2,5), n = zR(3,5), N = k*n;
+  return {t:`有 ${N} 顆糖，每 ${k} 顆一堆。可以分成幾堆？`, p:zBM([[String(N),[[String(k),1.6],[String(k),1.6],[String(k),1.6],["…",2,"q"]]]]), a:n, e:`${zRun(k,k,n)}，可以分成 ${n} 堆。`}; },
+"卓3-17": ()=>{ const [T,d,lo,hi] = zEven(), big = Math.random()<.5;
+  return {t:`兩堆餅乾一共 ${T} 個，一堆比另一堆多 ${d} 個。${big?"多":"少"}的那堆有幾個？`, p:zBM([["",[["?",3],[String(d),1.8,"b"]]],["",[["?",3]]]])+zP("👥 "+T), a:big?hi:lo, e:`${hi} 和 ${lo} 合起來是 ${T}，${hi} 比 ${lo} 多 ${d}。`}; },
+"卓3-18": ()=>{ const [T,d,lo,hi] = zEven(), big = Math.random()<.5;
+  return {t:`${T} 分成兩個數，一個比另一個多 ${d}。${big?"大":"小"}的數是多少？`, p:zBM([["",[["?",3],[String(d),1.4,"b"]]],["",[["?",3]]]])+zP(String(T)), a:big?hi:lo, e:`${hi} 和 ${lo} 合起來是 ${T}，${hi} 比 ${lo} 多 ${d}。`}; },
+"卓5-?": null,
+"卓9-15": ()=>{ const g = zR(1,4), h = zR(g+2,9), askB = Math.random()<.6;
+  return {t:`哥哥給妹妹 ${g} 顆糖，現在兩人都有 ${h} 顆。一開始${askB?"哥哥":"妹妹"}有幾顆？`, p:zArr([askB?"👦 ?":"👧 ?",`${zRow("🍬",g)} ➜ 👧`,`👦 ${h}　👧 ${h}`]), a:askB?h+g:h-g,
+    e: askB ? `給出去 ${g} 顆還有 ${h} 顆，一開始是 ${h+g} 顆。` : `拿到 ${g} 顆變成 ${h} 顆，一開始是 ${h-g} 顆。`}; },
+"卓9-16": ()=>{ const a = zR(2,5), b = zR(1,4), N = zR(b+2,12);
+  return {t:`車上下來 ${a} 個人，又上來 ${b} 個人，現在有 ${N} 個人。一開始有幾個人？`, p:zArr(["🚌 ?",`⬇️ ${a}`,`⬆️ ${b}`,`🚌 ${N}`]), a:N-b+a, e:`倒回去想：${N} 少 ${b} 是 ${N-b}，${N-b} 多 ${a} 是 ${N-b+a}。`}; },
+"卓9-17": ()=>{ const [x,y,z] = zSh(KIDS).slice(0,3), c = zR(5,8), d1 = zR(1,3), d2 = zR(1,4);
+  return {t:`${x}比${y}大 ${d1} 歲，${y}比${z}大 ${d2} 歲。${z} ${c} 歲，${x}幾歲？`, p:zBM([[z,[[String(c),zW8(c)]]],[y,[[String(c),zW8(c)],[String(d2),zW8(d2),"b"]]],[x,[[y,zW8(c+d2),"q"],[String(d1),zW8(d1),"b"]]]]), a:c+d1+d2,
+    e:`${y} ${c+d2} 歲，${x} ${c+d1+d2} 歲。`}; },
+"卓9-18": ()=>{ const lo = zR(10,30), hi = lo+5, ev = [lo+1,lo+2,lo+3,lo+4].filter(v=>v%2===0), no = zPk(ev), a = ev.find(v=>v!==no);
+  return {t:`這個數比 ${lo} 大、比 ${hi} 小，2 個 2 個數~可以數~到，也不是 ${no}。這個數是多少？`, p:zP(`${lo} ＜ ? ＜ ${hi}<br>2、4、6、8 …`), a, e:`比 ${lo} 大、比 ${hi} 小，2 個 2 個數~可以數~到的是 ${ev.join(" 和 ")}，不是 ${no} 就是 ${a}。`}; },
+"卓9-19": ()=>{ const [p,q,r] = zSh(ANI).slice(0,3);
+  return {t:`${p[0]}、${q[0]}、${r[0]}一起跑。${p[0]}沒跑第一，${q[0]}在${p[0]}的後面。誰跑第一？`, p:zP(`${p[1]} ✖ 🥇<br>${p[1]} ➜ ${q[1]}`), a:r[0], o:[p[0],q[0]], e:`${q[0]}在${p[0]}後面，也不是第一，所以是${r[0]}。`}; },
+"卓9-20": ()=>{ const d = zR(0,6), g = zR(1,2), a = WK[(d+g+1)%7], A = zPk(ANI);
+  return {t:`${A[0]}每隔 ${g} 天看一次書。${WK[d]}看了，下一次是星期幾？`, p:zWeek(d), a, o:zWkO(a), e:`隔 ${g} 天，是隔開${Array.from({length:g},(_,i)=>WK[(d+i+1)%7]).join("、")}，下一次${a}。`}; },
+"卓9-21": ()=>{ const k = zR(2,5), f = zR(2,4);
+  return {t:`每層有 ${k} 張桌子~，一共 ${f} 層。一共有幾張桌子~？`, p:zBM(Array.from({length:f},(_,i)=>[String(f-i),[[String(k),3]]])), a:k*f, e:`${zRun(k,k,f)}，一共 ${k*f} 張。`}; },
+};
+delete ZV["卓5-?"];
+const zCoinMin = ZV.zCoinMin; delete ZV.zCoinMin; ZV["卓4-15"] = ()=>zCoinMin(11,19); ZV["卓4-16"] = ()=>zCoinMin(20,39);
+// 出題時換：組成和原本一樣的題目格式（選擇題選項打散，數字題用數字盤）
+function zMake(id){ for(let i=0;i<30;i++){ const r = ZV[id](); if(!r || r.a===undefined || r.a===null || (typeof r.a==="number" && (r.a<0 || !Number.isInteger(r.a)))) continue;
+  const t = zf(r.t), all = r.o ? [r.a,...r.o].map(x=>zOpt(zf(x))) : null;
+  if(all && new Set(all).size!==all.length) continue;
+  const a = all ? all[0] : String(r.a);
+  return {q:`<div class="zy zq">${t}</div>${r.p||""}`, say:t.replace(/<[^>]+>/g,"").replace(/[\u{E0100}-\u{E01EF}]/gu,""), gen:all?()=>all.slice():()=>[a], zc:!!all, opts:all||[a], exp:r.e?zW(zf(r.e)):"", zv:1}; }
+  return null; }
+BANK.forEach(q=>{ if(ZV[q.id]) q.make = ()=>zMake(q.id) || {opts:[q.ans]}; });
+
 const MID = [...new Set(BANK.map(q=>q.u))];
 const inScope = (q, tops) => tops.some(t=>q.u===t || q.u[0]===t);
 
