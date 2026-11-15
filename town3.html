@@ -404,6 +404,8 @@
   #bCost{display:block;width:100%}
   .pers i.cn{background:none;box-shadow:none;width:auto;height:auto;line-height:1;right:-30%;top:-34%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55));animation:hop 1s infinite}
   .qgoal{position:relative;overflow:hidden;background:rgba(10,17,32,.82);border:1px solid rgba(255,214,147,.55);border-radius:9px;margin-top:6px;padding:4px 10px;font-size:13px;font-weight:700;color:#fff;text-align:center;min-height:24px}
+  .potl{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;font-size:12px;color:#ffe9b8}
+  .potb{border:0;border-radius:12px;padding:3px 10px;font-size:13px;font-weight:900;color:#3a2100;background:linear-gradient(180deg,#ffe98a,#f0b23c);box-shadow:0 2px 0 #7c430c;cursor:pointer}
   .qgoal span{position:relative} .qgf{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c86a12,#f0a13c);opacity:.75;transition:width .5s}
   .helpers{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:6px}
   .hp{display:inline-flex;align-items:center;gap:3px;background:rgba(255,217,138,.16);border-radius:16px;padding:2px 9px 2px 3px;font-size:13px;font-weight:800;color:#ffd98a;animation:hpin .45s ease-out both}
@@ -2139,7 +2141,7 @@ async function cloudSync(){
     const localWins = me.hero && !barely && (lx!==cx ? lx>cx : (localT ? localT>cloudT : false));
     if(localWins) await cloudPush();
     else { if(cloudT!==localT) cloudApply(d); cloudMark("ok"); }
-    openChineseMath(); dropAngle(); addG78(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack(); backGift();
+    openChineseMath(); dropAngle(); addG78(); if(!me.v21){ me.v21 = 1; me.pot = (me.pot||0)+1; saveMe(); toast("⚡ 新道具：加速藥水！送你 1 瓶，蓋房子時用"); } if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack(); backGift();
   }catch(e){ cloudMark("local"); }
 }
 // 雲端存檔（Firestore）：密碼藏在連結 #k=… 第一次打開後記在這台
@@ -2343,13 +2345,21 @@ function helpStrip(){ const list = shuffle(here().filter(awake)).slice(0,3); if(
     return `<span class="hp"><img src="${IMG(x.id)}" alt=""><b>${x.n}</b>${t}</span>`; }).join("")}</div>`; }
 function popNum(c){ const d = document.createElement("div"); d.className = "flyn"; d.textContent = `+${c}`; document.body.appendChild(d); setTimeout(()=>d.remove(), 950); }
 function burst(em){ for(let i=0;i<14;i++){ const d = document.createElement("div"); d.className = "bst"; d.textContent = em; d.style.left = (5+Math.random()*90)+"%"; d.style.animationDelay = (Math.random()*.25)+"s"; document.body.appendChild(d); setTimeout(()=>d.remove(), 1400); } }
+// 加速藥水（11/15，跟妹妹一樣）：每答對 50 題 1 瓶，1 瓶讓施工少答 3 題
+const POT_EVERY = 50, POT_Q = 3;
+function usePot(){ if(!me.build || !(me.pot>0)) return; me.pot--; const b = bOf(me.build.id); me.build.left -= POT_Q; sfx("unlock"); burst("⚡");
+  if(me.build.left<=0){ me.town[b.id] = me.build.lv; toast(`⚡ 加速藥水！🎉 ${b.name} ${me.build.lv} 級蓋好了！`); me.build = null; }
+  else toast(`⚡ 加速藥水！施工少 ${POT_Q} 題，再答對 ${me.build.left} 題`);
+  saveMe(); goalBar(); if(document.getElementById("buildBar")) try{ renderTown(); }catch(e){} }
+const potLine = () => { const pot = me.pot||0, left = POT_EVERY-(me.potN||0); return `<div class="potl"><span>⚡ ${pot} 瓶・再答對 ${left} 題得 1 瓶</span>${pot&&me.build?`<button class="potb">用藥水</button>`:""}</div>`; };
 // 答題時也看得到離下一個目標多近
 function goalBar(){ const el = document.getElementById("qgoal"); if(!el) return; let txt, pct;
   if(me.build){ const b = bOf(me.build.id), all = workOf(me.build.lv); txt = `🔨 ${b.name}再答對 ${me.build.left} 題就蓋好`; pct = 100*(1-me.build.left/Math.max(all,me.build.left)); }
   else { const coin = me.res.coin||0, {t} = goalT();
     if(!t){ txt = isV() ? "🎉 火山島全部蓋滿了！" : "🌋 火山島開放了！回小鎮按「🌍 世界」過去"; pct = 100; }
     else { pct = Math.min(100, coin/t.c*100); txt = coin>=t.c ? `🎉 金幣夠了！回小鎮把${t.b.name}升到 ${blv(t.b.id)+1} 級` : `🎯 ${t.b.name}升到 ${blv(t.b.id)+1} 級，還差 ${t.c-coin} ${ri("coin")}`; } }
-  el.innerHTML = `<div class="qgf" style="width:${pct}%"></div><span>${txt}</span>`; }
+  el.innerHTML = `<div class="qgf" style="width:${pct}%"></div><span>${txt}</span>${potLine()}`;
+  el.onclick = e=>{ if(e.target.closest(".potb")) usePot(); }; }
 // 金幣夠不夠用進度條看，條上寫還差多少
 function costBar(c){ const need = c.coin||0, have = me.res.coin||0, pct = need ? Math.min(100,have/need*100) : 100, full = pct>=100;
   return `<div class="cbar ${full?"full":""}"><div class="cbf" style="width:${pct}%"></div><span>${ri("coin")}${full?" ✅ 金幣夠了":` 還差 ${need-have}`}</span></div>`; }
@@ -2489,6 +2499,8 @@ function earn(q){
       sess.built.push(`${b.name} ${me.build.lv} 級`); me.build = null; rwSfx = "level";
     } else msg += `<br>🔨 ${b.name} 施工中，再答對 ${me.build.left} 題`;
   }
+  me.potN = (me.potN||0)+1;
+  if(me.potN>=POT_EVERY){ me.potN = 0; me.pot = (me.pot||0)+1; msg += `<div class="lucky">⚡ 得到加速藥水！現在有 ${me.pot} 瓶</div>`; burst("⚡"); rwSfx = rwSfx || "unlock"; }
   if(streak>0 && streak%10===0 && !me.play){ const a = here().filter(awake); if(a.length){ const x = a[Math.floor(Math.random()*a.length)]; me.play = x.id; msg += `<div class="lucky">🎈 ${x.n} 想找你玩！</div>`; } }
   // 連續答對得到食物，拿去餵居民
   { const f = streak>0 ? [...FOODS].reverse().find(x=>streak%x.n===0) : null; if(f){ me[f.k] = (me[f.k]||0)+1; msg += `<div class="lucky">${f.e} +1（連對 ${streak} 題）</div>`; if(f.n>3) burst(f.e); } }
@@ -2533,7 +2545,7 @@ function renderTown(){
   bb.innerHTML = nextGoal() + (wt.length && ppl.length>=cap() ? `<br>🏠 有 ${wt.length} 位居民想搬來，快升級「民宅」` : "");
   { const tired = here().filter(x=>stOf(x.id)<50).length; bb.innerHTML += `<div class="foodl">${FOODS.map((f,i)=>`<button class="foodb ${feedOn===i?"on":""}" data-f="${i}">${f.e} ${me[f.k]||0}${feedOn===i?" 👆":""}</button>`).join("")}${tired?`<span>💤 ${tired}</span>`:""}</div>`; document.body.classList.toggle("feeding", feedOn!==null); }
   { const n = here().filter(x=>(me.hv||{})[x.id]).length; if(n) bb.innerHTML += `<button class="hvall">💰 ${n} ➜ 全部收下</button>`; }
-  bb.onclick = e=>{ if(e.target.closest(".hvall")) return collectAll(); { const fb = e.target.closest(".foodb"); if(fb){ const i = +fb.dataset.f; if(!(me[FOODS[i].k]>0)){ toast(`${FOODS[i].e} 0 ➜ ⚔️🔥`); return; } sfx("tap"); openFeed(i); return; } } };
+  bb.onclick = e=>{ if(e.target.closest(".potb")) return usePot(); if(e.target.closest(".hvall")) return collectAll(); { const fb = e.target.closest(".foodb"); if(fb){ const i = +fb.dataset.f; if(!(me[FOODS[i].k]>0)){ toast(`${FOODS[i].e} 0 ➜ ⚔️🔥`); return; } sfx("tap"); openFeed(i); return; } } };
   renderWorld();
 }
 
@@ -2921,7 +2933,7 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
 let heroW = null;
 // 下一個目標：永遠告訴孩子再賺多少金幣可以做什麼
 function nextGoal(){
-  if(me.build){ const b = bOf(me.build.id); return `🔨 ${b.name} ${me.build.lv} 級施工中，再答對 <b>${me.build.left}</b> 題就蓋好`; }
+  if(me.build){ const b = bOf(me.build.id); return `🔨 ${b.name} ${me.build.lv} 級施工中，再答對 <b>${me.build.left}</b> 題就蓋好${me.pot?`　<button class="potb">⚡ 用藥水（${me.pot}）</button>`:`　答對 ${POT_EVERY-(me.potN||0)} 題得到 ⚡`}`; }
   const coin = me.res.coin||0, {lots, t} = goalT();
   if(curB().some(b=>canBuild(b)[0] && (blv(b.id)>0 || lots>0))) return "⬆ 金幣夠了！點有綠色箭頭的地方蓋房子";
   if(!t) return isV() ? "🎉 火山島全部蓋滿了！你真的太厲害了！" : "🎉 極光小鎮全部蓋滿了！🌋 火山島開放了：按「🌍 世界」，點火山島過去蓋新家";
