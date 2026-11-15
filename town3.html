@@ -3248,6 +3248,17 @@ function startGame(list){
   show("play"); nextQ();
 }
 
+// 週六單字總複習（2026-11-15 使用者：週五舞蹈課沒時間，改週六）：週六先把這週一～五雜誌單字全部重拼一遍，拼對才算過
+// 每做一天雜誌就在 MAG_DAYS 加一行（日期：當天拼字題的答案）
+const MAG_DAYS = {"2026-11-09":["new","hard","continue","interesting"], "2026-11-10":["regret","desire","advertisement","treat"], "2026-11-11":["scarf","deal","beat","nearly"], "2026-11-12":["human","loss","protect","energy"], "2026-11-16":["hang","dry","turn","up"]};
+function satList(){
+  const d = new Date(); if(d.getDay()!==6) return [];
+  const t = today(), from = new Date(d.getFullYear(),d.getMonth(),d.getDate()-6).toLocaleDateString("sv");
+  const ws = new Set(Object.entries(MAG_DAYS).filter(([k])=>k>=from && k<t).flatMap(([,v])=>v));
+  if(!ws.size) return [];
+  if(!me.sat || me.sat.d!==t) me.sat = {d:t, ok:[]};
+  return BANK.filter(q=>q.spell && q.u[0]==="英" && ws.has(q._a || (q._a = q.make().ans)));
+}
 const EN_AFTER = new Date(2026,10,9,18,0).getTime();   // 11/9 下午 6 點後才出英文
 let lastK = "數";   // 上一題是英文還是數學，下一題換另一科
 function choose(){
@@ -3256,6 +3267,8 @@ function choose(){
   let list = cand.length ? cand : noAg.length ? noAg : pool;
   if(Date.now()<EN_AFTER){ const noEn = list.filter(q=>q.u[0]!=="英"); if(noEn.length) list = noEn; }   // 家長回家前先只出卓越盃
   if(place && place.area==="flow"){ const isE6 = q=>q.u[0]==="英", isM6 = q=>q.u[0]==="卓"||q.u[0]==="數", want = lastK==="英" ? isM6 : isE6, alt = list.filter(want); if(alt.length && list.some(q=>isE6(q)||isM6(q))) list = alt;   // 數學、英文一題一題輪流
+    const sat = satList(), satLeft = sat.filter(q=>!me.sat.ok.includes(q.id));
+    if(satLeft.length){ if(!me.sat.hi){ me.sat.hi = 1; toast(`📅 週六單字總複習！<br>把這週雜誌的 ${sat.length} 個單字再拼一遍 ✏️`); } return satLeft[Math.floor(Math.random()*satLeft.length)]; }   // 週六：這週單字先全部拼過
     const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
     const zNew = list.filter(q=>q.nw && !stats[q.id]); if(zNew.length && Math.random()<0.7) return zNew[Math.floor(Math.random()*zNew.length)];   // 卓越盃第二批：沒做過的新題優先，其餘機會留給錯題複習
     const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
@@ -3386,6 +3399,7 @@ function answer(o){
     if(b.dataset.v===cur.ans) b.classList.add("right"); else b.classList.add("dim");
   });
   const s = stats[cur.id] || (stats[cur.id]={w:0,r:0});
+  if(ok && me.sat && me.sat.d===today() && cur.spell && !me.sat.ok.includes(cur.id) && satList().some(q=>q.id===cur.id)){ me.sat.ok.push(cur.id); if(!satList().some(q=>!me.sat.ok.includes(q.id))) setTimeout(()=>{ sfx("level"); burst("🎉"); toast("🎉 這週的雜誌單字全部拼完了！"); },900); }
   let gain = 0; const ex = place && place.exam;
   if(ok){
     const secs = (Date.now()-tStart)/1000; s.ts = Math.round(((s.ts||0)+secs)*10)/10; s.tn = (s.tn||0)+1;
