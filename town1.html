@@ -1481,7 +1481,8 @@ async function cloudPush(){
   try{
     // 別的畫面或裝置存過更新的進度：這個畫面已經舊了，改用新的，不要蓋掉
     const snap = await cloudDb.doc("saves/main").get(), d = snap.exists ? snap.data() : null;
-    if(d && (d.t||0) > cloudSeen && (d.t||0) !== me.t){ cloudSeen = d.t||0; cloudApply(d); cloudMark("ok"); toast("🔄 進度已更新成最新的"); }
+    // 經驗值只會增加：雲端的經驗值比這台少，表示是別台舊的進度蓋上去的，不要採用（11/15 水晶島被舊 iPad 蓋掉）
+    if(d && (d.t||0) > cloudSeen && (d.t||0) !== me.t && ((d.me||{}).xp||0) >= (me.xp||0)){ cloudSeen = d.t||0; cloudApply(d); cloudMark("ok"); toast("🔄 進度已更新成最新的"); }
     else { await cloudDb.doc("saves/main").set({t:me.t, me:JSON.parse(JSON.stringify(me)), stats:JSON.parse(JSON.stringify(stats))}); cloudSeen = me.t; cloudMark("ok"); }
   }
   catch(e){ cloudMark("local"); if(e && e.code==="unavailable") setTimeout(cloudDirty, 4000); }
@@ -1524,7 +1525,9 @@ async function cloudSync(){
     if(!snap.exists){ if(me.hero && !barely) await cloudPush(); else cloudMark("ok"); return; }
     const d = snap.data(), cloudT = d.t||0, localT = me.t||0; cloudSeen = cloudT;
     // 舊版存檔沒有時間，就看誰的經驗值高
-    const localWins = me.hero && !barely && (localT ? localT>cloudT : (me.xp||0) > ((d.me||{}).xp||0));
+    // 先比經驗值（只會增加，舊裝置的進度一定比較少），一樣多才比時間
+    const lx = me.xp||0, cx = (d.me||{}).xp||0;
+    const localWins = me.hero && !barely && (lx!==cx ? lx>cx : (localT ? localT>cloudT : false));
     if(localWins) await cloudPush();
     else { if(cloudT!==localT) cloudApply(d); cloudMark("ok"); }
     fixFerris(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack(); isleAnnounce(); xtalAnnounce();
