@@ -1533,7 +1533,7 @@ async function cloudSync(){
     const localWins = me.hero && !barely && (lx!==cx ? lx>cx : (localT ? localT>cloudT : false));
     if(localWins) await cloudPush();
     else { if(cloudT!==localT) cloudApply(d); cloudMark("ok"); }
-    fixFerris(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } welcomeBack(); isleAnnounce(); xtalAnnounce();
+    fixFerris(); if(!me.v10){ me.v10 = 1; me.st = {}; saveMe(); refreshMap(); } clkBack(); welcomeBack(); isleAnnounce(); xtalAnnounce();
   }catch(e){ cloudMark("local"); }
 }
 // 雲端存檔（Firestore）：密碼藏在連結 #k=… 第一次打開後記在這台
@@ -1777,6 +1777,12 @@ const lvFor = (x,k) => x.isle ? blvAt(x.isle,k) : bon(k);
 const topOf = (b,i=isleNow()) => i ? b.max*2 : b.max;   // 椰風島的等級上限是兩倍
 const auroraFull = () => BLD.every(b=>blvAt(0,b.id)>=b.max);
 function goIsle(i){ if(i===isleNow()) return; me.isles = me.isles||{}; me.isles[isleNow()] = {town:me.town, lots:me.lots||{}}; const o = me.isles[i]||{town:{hall:1},lots:{}}; me.town = o.town; me.lots = o.lots; delete me.isles[i]; me.isle = i; heroSpot = null; saveMe(); }
+// 11/17 家長：掛鐘是姐姐不小心幫她買的，退掉一個、還 140 金幣（只做一次）
+function clkBack(){ if(me.clkBack) return; me.clkBack = 1; const h = me.home; let ok = false;
+  if(h && h.inv && h.inv.clock>0){ h.inv.clock--; if(h.inv.clock<=0) delete h.inv.clock; ok = true; }
+  else if(h && h.it){ const i = h.it.findIndex(o=>o.k==="clock"); if(i>=0){ h.it.splice(i,1); ok = true; } }
+  if(ok){ me.res.coin = (me.res.coin||0)+140; toast("🕰️ 掛鐘退回去了，金幣 +140"); }
+  saveMe(); }
 function xtalAnnounce(){ if(me.xtalAnn || !auroraFull() || !me.isleAnn || document.getElementById("isleOv").classList.contains("on")) return; me.xtalAnn = 1; saveMe(); document.getElementById("xtalImg").src = IMG("bg_crystal"); sfx("level"); burst("💎"); document.getElementById("xtalOv").classList.add("on"); speak("水晶島開放了！你想去哪一座島？自己選！"); }
 function isleAnnounce(){ if(me.isleAnn || !auroraFull()) return; me.isleAnn = 1; saveMe(); document.getElementById("isleImg").src = IMG("bg_coco"); sfx("level"); burst("🏝️"); document.getElementById("isleOv").classList.add("on"); speak("極光小鎮蓋滿了！椰風島開放了，有新的居民在等你"); }
 const bOf = id => BLD.find(b=>b.id===id);
