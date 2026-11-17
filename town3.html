@@ -3164,8 +3164,8 @@ document.getElementById("openTown").onclick = ()=>toTown();
 function reward(q){
   const msgs = []; rwSfx = "";
   const lv0 = lvOf(me.xp), bl0 = BADGES.map(badgeLv);
-  // 三年級題目比較難，經驗值加倍（11/8 起）
-  const gain = (10 + (streak>=3 ? 5 : 0) + (curAg ? 5 : 0) + blv("library")*3 + (blv("vspring")+blv("vnest")+blv("vgreen"))*2 + blv("vobs")*3 + (blv("xgarden")+blv("xfountain")+blv("xferris"))*2 + (blv("xlibrary")+blv("xtower"))*3 + pBonus("xp")) * 2;
+  // 11/8 起經驗值加倍追趕妹妹；11/17 家長說已經超過了，拿掉加倍
+  const gain = (10 + (streak>=3 ? 5 : 0) + (curAg ? 5 : 0) + blv("library")*3 + (blv("vspring")+blv("vnest")+blv("vgreen"))*2 + blv("vobs")*3 + (blv("xgarden")+blv("xfountain")+blv("xferris"))*2 + (blv("xlibrary")+blv("xtower"))*3 + pBonus("xp"));
   const earnMsg = earn(q);
   me.xp += gain; sess.xp += gain;
   const d = today(); me.day[d] = (me.day[d]||0)+1;
