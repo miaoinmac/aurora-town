@@ -2522,14 +2522,14 @@ const ME_KID = "luna";
 // ───────────── 世界 Boss：姐妹一起打，每週一隻；兩人答對的題目加在一起才打得倒 ─────────────
 // 共用的進度放在雲端一份文件，文件密碼只存在兩人的存檔（me.fam），不寫在程式裡
 const WB_API = "https://firestore.googleapis.com/v1/projects/aurora-town/databases/(default)/documents";
-const WB_HP = 400, WB_CAP = 200, WB_RATE = {emma:1, luna:2};   // 一人最多打 200 下，一定要兩個人；姐姐題目比較難，一題算 2 下
+const WB_HP = 400, WB_CAP = 200, WB_RATE = {emma:1, luna:1};   // 一人最多打 200 下，一定要兩個人；11/17 家長說兩人一致，一題都算 1 下
 const WB_WHO = ME_KID==="emma" ? {emma:"我", luna:"姐姐"} : {luna:"我", emma:"妹妹"};
 const wbWeek = () => { const d = new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return "w"+d.toLocaleDateString("sv").replace(/-/g,""); };
 let wbRaw = {emma:0, luna:0}, wbWk = "", wbSend = 0, wbTimer = null, wbBusy = false;
 const wbOn = () => !!me.fam;
 const wbDmg = k => Math.min(WB_CAP, (wbRaw[k]||0)*WB_RATE[k]);
 const wbTotal = () => wbDmg("emma") + wbDmg("luna");
-// 這週的努力：每週一歸零，不設上限，三年級一題算 2
+// 這週的努力：每週一歸零，不設上限，兩人一題都算 1
 const wbWeekPts = k => (wbRaw[k]||0)*WB_RATE[k];
 async function wbLoad(){ if(!wbOn()) return false;
   try{ const r = await fetch(`${WB_API}/saves/${me.fam}`, {cache:"no-store"}); if(!r.ok && r.status!==404) return false;
