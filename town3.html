@@ -3861,9 +3861,9 @@ function hwShow(on, net){ let o = document.getElementById("hwLock");
   hwLocked = true;
   if(!o){ o = document.createElement("div"); o.id = "hwLock";
     o.style.cssText = "position:fixed;inset:0;z-index:99999;background:linear-gradient(#1b2a4a,#0d1526);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-weight:800";
-    o.innerHTML = `<div style="font-size:76px">📒✏️</div><div style="font-size:32px;margin:12px 0">先去寫功課喔！</div><div style="font-size:20px;line-height:1.7;opacity:.92">功課寫完，請爸爸媽媽幫你打開。<br>打開以後，這裡會自己變回小鎮。</div><div id="hwNet" style="margin-top:16px;font-size:15px;opacity:.7"></div>`;
+    o.innerHTML = `<div style="font-size:76px">📋✅</div><div style="font-size:32px;margin:12px 0">先去完成任務喔！</div><div style="font-size:20px;line-height:1.7;opacity:.92">任務完成了，請爸爸媽媽幫你打開。<br>打開以後，這裡會自己變回小鎮。</div><div id="hwNet" style="margin-top:16px;font-size:15px;opacity:.7"></div>`;
     document.body.appendChild(o);
-    if(ME_KID==="emma" && typeof speak==="function") setTimeout(()=>speak("先去寫功課喔！功課寫完，請爸爸媽媽幫你打開。"), 500); }
+    if(ME_KID==="emma" && typeof speak==="function") setTimeout(()=>speak("先去完成任務喔！任務完成了，請爸爸媽媽幫你打開。"), 500); }
   document.getElementById("hwNet").textContent = net ? "連不上網路，等一下會自己再試" : "";
 }
 async function hwCheck(){
