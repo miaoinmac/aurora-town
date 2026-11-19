@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>功課開關</title>
+<style>
+  :root{--bg:#f6f3ec;--card:#fff;--ink:#222;--sub:#6b6b6b;--ok:#2e9d5b;--lock:#c0563b;--line:#e4dfd4}
+  @media (prefers-color-scheme:dark){:root{--bg:#16181d;--card:#22252c;--ink:#f1f1f1;--sub:#a3a3a3;--line:#33363e}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;padding:20px 16px 40px}
+  h1{font-size:24px;margin:0 0 2px}
+  .date{color:var(--sub);margin-bottom:18px}
+  .kid{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .kid h2{margin:0 0 4px;font-size:20px}
+  .st{font-weight:700;margin-bottom:12px}
+  .st.ok{color:var(--ok)} .st.lock{color:var(--lock)}
+  button{width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-size:19px;font-weight:800;cursor:pointer}
+  .open{background:var(--ok);color:#fff}
+  .relock{background:transparent;color:var(--sub);border:1px solid var(--line);font-size:15px;padding:10px;margin-top:8px;font-weight:600}
+  .wk{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .wk input{width:24px;height:24px}
+  .msg{color:var(--sub);font-size:14px;margin-top:14px}
+  .err{color:var(--lock);font-weight:700}
+</style>
+</head>
+<body>
+<h1>📒 功課開關</h1>
+<div class="date" id="date"></div>
+<div id="kids"></div>
+<label class="wk"><input type="checkbox" id="wkd"> <span>週六、週日不用按，自動開放</span></label>
+<div class="msg" id="msg">按下後，孩子的遊戲大約 10 秒內會打開。每天早上自動重新鎖上。</div>
+<script>
+const API = "https://firestore.googleapis.com/v1/projects/aurora-town/databases/(default)/documents/saves/";
+const KIDS = [["emma","妹妹（一年級）"],["luna","姐姐（三年級）"]];
+function getKey(){ const m = location.hash.match(/k=([A-Za-z0-9_-]{16,})/);
+  try{ if(m){ localStorage.setItem("aurora-parent-key", m[1]); return m[1]; } return localStorage.getItem("aurora-parent-key")||""; }catch(e){ return m ? m[1] : ""; } }
+const KEY = getKey();
+const today = () => new Date().toLocaleDateString("sv");
+const field = k => "d"+today().replace(/-/g,"")+"_"+k;
+const isWeekend = () => [0,6].includes(new Date().getDay());
+let F = {};
+async function load(){
+  document.getElementById("date").textContent = new Date().toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"long"});
+  if(!KEY){ document.getElementById("kids").innerHTML = `<p class="err">這個連結少了密碼，請用完整的家長連結打開。</p>`; return; }
+  try{ const r = await fetch(API+KEY+"-hw",{cache:"no-store"}); F = r.ok ? ((await r.json()).fields||{}) : r.status===404 ? {} : null; if(!F) throw 0; }
+  catch(e){ document.getElementById("kids").innerHTML = `<p class="err">連不上網路，請稍後再試。</p>`; return; }
+  draw();
+}
+function draw(){
+  const wk = !!(F.wkd||{}).booleanValue; document.getElementById("wkd").checked = wk;
+  document.getElementById("kids").innerHTML = KIDS.map(([k,n])=>{ const on = !!(F[field(k)]||{}).booleanValue, auto = wk && isWeekend();
+    return `<div class="kid"><h2>${n}</h2><div class="st ${on||auto?"ok":"lock"}">${auto?"✅ 週末自動開放中":on?"✅ 今天已經開放":"🔒 還鎖著"}</div>`+
+      (auto ? "" : on ? `<button class="relock" data-k="${k}" data-v="0">再鎖起來</button>` : `<button class="open" data-k="${k}" data-v="1">✅ 功課寫完了，打開遊戲</button>`)+`</div>`; }).join("");
+}
+async function put(name, val){
+  const body = JSON.stringify({fields:{[name]:{booleanValue:val}}});
+  const r = await fetch(API+KEY+"-hw?updateMask.fieldPaths="+name, {method:"PATCH", headers:{"Content-Type":"application/json"}, body});
+  if(!r.ok) throw 0; F[name] = {booleanValue:val};
+}
+document.getElementById("kids").onclick = async e=>{ const b = e.target.closest("button"); if(!b) return; b.disabled = true;
+  try{ await put(field(b.dataset.k), b.dataset.v==="1"); draw(); }catch(err){ b.disabled = false; alert("沒有成功，請檢查網路再按一次。"); } };
+document.getElementById("wkd").onchange = async e=>{ try{ await put("wkd", e.target.checked); draw(); }catch(err){ e.target.checked = !e.target.checked; alert("沒有成功，請檢查網路再試一次。"); } };
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) load(); });
+load();
+</script>
+</body>
+</html>

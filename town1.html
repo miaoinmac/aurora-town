@@ -3156,7 +3156,38 @@ function brkTick(){ const b = brk(), now = Date.now();
   if(b.u>=BRK_PLAY && !document.getElementById("play").classList.contains("on")) brkGo();
   if(now-brkSaved>30000){ brkSaved = now; try{ localStorage.setItem(PKEY, JSON.stringify(me)); }catch(e){} } }
 setInterval(brkTick, 1000);
-cloudInit().then(afterCloud);
+// 功課鎖（11/19 家長要求）：家長在自己手機的家長頁按「功課寫完了」才能玩，每天重新鎖；週末可以設定自動開放
+// 開關放在共用文件 saves/<me.fam>-hw，欄位 d<日期>_<孩子>；連不上網路時，今天開過就照樣能玩
+const HW_KEY = "hwok-"+ME_KID;
+let hwTimer = null, hwLocked = false;
+const hwField = () => "d"+today().replace(/-/g,"")+"_"+ME_KID;
+function hwShow(on, net){ let o = document.getElementById("hwLock");
+  if(!on){ if(o){ o.remove(); sfx("level"); burst("🎉"); } hwLocked = false; return; }
+  hwLocked = true;
+  if(!o){ o = document.createElement("div"); o.id = "hwLock";
+    o.style.cssText = "position:fixed;inset:0;z-index:99999;background:linear-gradient(#1b2a4a,#0d1526);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-weight:800";
+    o.innerHTML = `<div style="font-size:76px">📒✏️</div><div style="font-size:32px;margin:12px 0">先去寫功課喔！</div><div style="font-size:20px;line-height:1.7;opacity:.92">功課寫完，請爸爸媽媽幫你打開。<br>打開以後，這裡會自己變回小鎮。</div><div id="hwNet" style="margin-top:16px;font-size:15px;opacity:.7"></div>`;
+    document.body.appendChild(o);
+    if(ME_KID==="emma" && typeof speak==="function") setTimeout(()=>speak("先去寫功課喔！功課寫完，請爸爸媽媽幫你打開。"), 500); }
+  document.getElementById("hwNet").textContent = net ? "連不上網路，等一下會自己再試" : "";
+}
+async function hwCheck(){
+  clearTimeout(hwTimer);
+  if(!me.fam) return hwShow(false);
+  const d = today(); let ok = null, net = false;
+  try{ const r = await fetch(`${WB_API}/saves/${me.fam}-hw`, {cache:"no-store"});
+    if(r.ok || r.status===404){ const f = r.ok ? ((await r.json()).fields||{}) : {};
+      ok = !!((f[hwField()]||{}).booleanValue || ([0,6].includes(new Date().getDay()) && (f.wkd||{}).booleanValue)); }
+    else net = true;
+  }catch(e){ net = true; }
+  if(ok===null){ try{ ok = localStorage.getItem(HW_KEY)===d; }catch(e){ ok = false; } }
+  else try{ if(ok) localStorage.setItem(HW_KEY, d); else localStorage.removeItem(HW_KEY); }catch(e){}
+  if(ok){ if(hwLocked) hwShow(false); }
+  else { hwShow(true, net); hwTimer = setTimeout(hwCheck, 8000); }
+}
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) hwCheck(); });
+hwCheck();
+cloudInit().then(()=>{ afterCloud(); hwCheck(); });
 setTimeout(afterCloud, 5000);
 </script>
 </body>
