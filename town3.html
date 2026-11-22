@@ -3147,6 +3147,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   if(!me.v23){ me.v23 = 1; cfg.tops = cfg.tops.filter(u=>!["數1","數2","數3","數4"].includes(u)); ["數5","數6","數7"].forEach(u=>{ if(!cfg.tops.includes(u)) cfg.tops.push(u); }); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 11/22 家長：自然、社會期中考前的單元先不出（只做一次）
   if(!me.v24){ me.v24 = 1; cfg.tops = cfg.tops.filter(u=>!["自1","自2","社1","社2"].includes(u)); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
+  // 11/22 家長：英文加回範圍（雜誌題 英5–英8；只做一次）
+  if(!me.v25){ me.v25 = 1; ["英5","英6","英7","英8"].forEach(u=>{ if(!cfg.tops.includes(u)) cfg.tops.push(u); }); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven8){ me.ven8 = 1; if(!cfg.tops.includes("英8")) cfg.tops.push("英8"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven7){ me.ven7 = 1; if(!cfg.tops.includes("英7")) cfg.tops.push("英7"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
