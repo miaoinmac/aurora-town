@@ -440,6 +440,12 @@
   .kshow{text-align:center;font-size:36px;font-weight:900;color:#fff;background:rgba(10,17,32,.82);border:2px solid rgba(255,214,147,.6);border-radius:12px;padding:6px}
   .kshow.good{color:#ffd98a;box-shadow:0 0 18px rgba(255,190,90,.9)} .kshow.bad{color:#ff9a9a}
   .kkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .kbx{display:flex;justify-content:center;gap:8px}
+  .kb{width:58px;height:70px;border-radius:12px;background:rgba(10,17,32,.85);border:3px solid rgba(255,214,147,.35);color:#fff;font:inherit;font-size:34px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;padding:0}
+  .kb small{font-size:12px;opacity:.65;margin-top:4px;font-weight:700}
+  .kb.cur{border-color:#ffd98a;box-shadow:0 0 12px rgba(255,200,100,.85)}
+  .kbx.good .kb{color:#ffd98a} .kbx.bad .kb{color:#ff9a9a}
+  .key.kdir{font-size:16px}
   .key{border:0;border-radius:12px;min-height:54px;font-size:26px;font-weight:900;color:#102036;background:linear-gradient(180deg,rgba(214,236,250,.96),rgba(150,190,222,.96));box-shadow:0 3px 0 rgba(30,50,80,.8)}
   .key:active{transform:translateY(2px)} .key:disabled{opacity:.5}
   .pgr small{display:block;color:#b9c8e0;font-weight:500;font-size:12px}
@@ -1531,6 +1537,32 @@ const POS = ["千位","百位","十位","個位"];
 // 有 0 的四位數，練讀法和寫法
 const zeroNum = () => one([()=>RI(1,9)*1000+RI(1,9)*10+RI(1,9), ()=>RI(1,9)*1000+RI(1,9), ()=>RI(1,9)*1000+RI(1,9)*100+RI(1,9), ()=>RI(1,9)*1000+RI(1,9)*100+RI(1,9)*10, ()=>RI(1,9)*1000+RI(1,9)*10])();
 
+// ───── 期中考後：5 角、6 面積、7 除法（11/22 家長要求，題目每次重新產生）─────
+// 角的圖：頂點在中間，第一條邊朝 rot 度，第二條邊再轉 deg 度；邊長不同不影響角的大小
+function angSvg(deg, rot, l1, l2, lab){ const cx = 70, cy = 62, P = (a,L)=>[cx+L*Math.cos(a*Math.PI/180), cy-L*Math.sin(a*Math.PI/180)].map(v=>v.toFixed(1));
+  const [x1,y1] = P(rot,l1), [x2,y2] = P(rot+deg,l2), [ax,ay] = P(rot,14), [bx,by] = P(rot+deg,14), [mx,my] = P(rot+deg/2,14*Math.SQRT2);
+  const mark = deg===90 ? `<path d="M${ax} ${ay} L${mx} ${my} L${bx} ${by}" fill="none" stroke="#e0603a" stroke-width="2"/>` : `<path d="M${ax} ${ay} A14 14 0 0 0 ${bx} ${by}" fill="none" stroke="#e0603a" stroke-width="2"/>`;
+  return `<svg viewBox="0 0 140 124" width="130" height="115"><line x1="${cx}" y1="${cy}" x2="${x1}" y2="${y1}" stroke="#223" stroke-width="3" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#223" stroke-width="3" stroke-linecap="round"/>${mark}<circle cx="${cx}" cy="${cy}" r="3" fill="#223"/>${lab?`<text x="6" y="20" font-size="18" font-weight="900" fill="#223">${lab}</text>`:""}</svg>`; }
+const angKind = d => d<90 ? "銳角" : d===90 ? "直角" : "鈍角";
+const angDeg = k => k==="銳角" ? RI(25,70) : k==="直角" ? 90 : RI(110,160);
+// 方格圖：cells 整格、tris 半格（三角形，c＝哪個角），每一小格 1 平方公分
+function gridSvg(W, H, cells, tris, lab, polys){ const S = 22, pad = 4, w = W*S+pad*2, h = H*S+pad*2 + (lab?22:0), oy = lab?22:0;
+  let g = ""; for(let x=0;x<=W;x++) g += `<line x1="${pad+x*S}" y1="${oy+pad}" x2="${pad+x*S}" y2="${oy+pad+H*S}" stroke="#bcd" stroke-width="1"/>`;
+  for(let y=0;y<=H;y++) g += `<line x1="${pad}" y1="${oy+pad+y*S}" x2="${pad+W*S}" y2="${oy+pad+y*S}" stroke="#bcd" stroke-width="1"/>`;
+  const X = x=>pad+x*S, Y = y=>oy+pad+y*S;
+  const f = cells.map(([x,y])=>`<rect x="${X(x)}" y="${Y(y)}" width="${S}" height="${S}" fill="#7cc0f0" stroke="#2a6fa8" stroke-width="1.2"/>`).join("");
+  const t = (tris||[]).map(([x,y,c])=>{ const pts = [[X(x),Y(y)],[X(x+1),Y(y)],[X(x+1),Y(y+1)],[X(x),Y(y+1)]]; pts.splice(c,1); return `<polygon points="${pts.map(p=>p.join(",")).join(" ")}" fill="#7cc0f0" stroke="#2a6fa8" stroke-width="1.2"/>`; }).join("") + (polys||[]).map(P=>`<polygon points="${P.map(([x,y])=>X(x)+","+Y(y)).join(" ")}" fill="#7cc0f0" stroke="#2a6fa8" stroke-width="1.5"/>`).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" width="${Math.min(w*1.2,300)}">${lab?`<text x="4" y="18" font-size="18" font-weight="900" fill="#223">${lab}</text>`:""}${g}${f}${t}</svg>`; }
+// 隨機長出一塊連在一起的圖形（k 格），再在旁邊加 t 個半格
+function blob(W, H, k, t){ const key = (x,y)=>x+","+y, has = new Set(), cells = [];
+  const add = (x,y)=>{ has.add(key(x,y)); cells.push([x,y]); }; add(Math.floor(W/2), Math.floor(H/2));
+  const nb = c=>[[c[0]+1,c[1]],[c[0]-1,c[1]],[c[0],c[1]+1],[c[0],c[1]-1]].filter(([x,y])=>x>=0&&y>=0&&x<W&&y<H&&!has.has(key(x,y)));
+  for(let g=0; cells.length<k && g<500; g++){ const c = one(cells), n = nb(c); if(n.length){ const [x,y] = one(n); add(x,y); } }
+  const tris = []; for(let g=0; tris.length<t && g<500; g++){ const c = one(cells), n = nb(c); if(n.length){ const [x,y] = one(n); if(!tris.some(q=>q[0]===x&&q[1]===y)){ tris.push([x,y,RI(0,3)]); has.add(key(x,y)); } } }
+  return {cells, tris, area: cells.length + tris.length/2}; }
+const zpic = h => `<br><span class="zpic">${h}</span>`;
+const GRID_Q = "每一小格是 1 平方公分。";
+
 const MATH = [
   // 數學 1　10000 以內的數
   {u:"數1", k:"讀法", make(){ const n = zeroNum(), d = digits(n);
@@ -1609,6 +1641,74 @@ const MATH = [
     if(t===0){ const a = RI(12,48), b = RI(3,9); return {q:`一盒草莓有 ${a} 顆，${b} 盒共有多少顆？`, opts:four(a*b, [a+b, noCarryMul(a,b), a*b+10, a*(b-1)]), exp:`${a}×${b}＝${a*b}`}; }
     if(t===1){ const a = RI(105,450); return {q:`哥哥每天存 ${a} 元，一個星期可以存多少元？`, opts:four(a*7, [a*5, a+7, a*7+100, noCarryMul(a,7)]), exp:`一星期有 7 天：${a}×7＝${a*7}`}; }
     const a = RI(105,299), b = RI(3,9); return {q:`一本雜誌賣 ${a} 元，媽媽買了 ${b} 本，要付多少元？`, opts:four(a*b, [a+b, noCarryMul(a,b), a*b-10, a*(b+1)]), exp:`${a}×${b}＝${a*b}`}; }},
+  // 數學 5　角
+  {u:"數5", k:"角的種類", make(){ const k = one(["銳角","直角","鈍角"]), d = angDeg(k);
+    return {q:"這是什麼角？"+zpic(angSvg(d, RI(0,359), RI(45,58), RI(45,58))), opts:[k, ...["銳角","直角","鈍角"].filter(x=>x!==k), "平角"].slice(0,3), exp:`${k==="銳角"?"比直角小，是銳角":k==="直角"?"和三角板的直角一樣大，是直角":"比直角大，是鈍角"}。可以拿三角板的直角來比比看。`}; }},
+  {u:"數5", k:"角比大小", make(){ const same = Math.random()<.3, a = RI(30,150), b = same ? a : (Math.random()<.5 ? a+RI(15,30) : a-RI(15,30)), bb = Math.min(165,Math.max(20,b));
+    const big = a===bb ? "一樣大" : a>bb ? "甲" : "乙", la = big==="甲" ? RI(28,36) : RI(48,58), lb = big==="乙" ? RI(28,36) : RI(48,58);
+    return {q:"甲、乙兩個角，哪一個比較大？"+zpic(angSvg(a, RI(0,90), la, la, "甲")+angSvg(bb, RI(0,90), lb, lb, "乙")), opts:[big, ...["甲","乙","一樣大"].filter(x=>x!==big)], exp:"角的大小只看兩條邊張開多少，和邊畫得長或短沒有關係。"}; }},
+  {u:"數5", k:"鐘面的角", make(){ const h = one([1,2,3,4,5,7,8,9,10,11]), d = 30*Math.min(h,12-h), k = angKind(d);
+    return {q:`${h} 點整時，長針和短針所成的角是什麼角？`, opts:[k, ...["銳角","直角","鈍角"].filter(x=>x!==k)], exp:`鐘面上一大格是直角的三分之一。${h} 點整時兩針相差 ${Math.min(h,12-h)} 大格，${k==="直角"?"剛好 3 大格是直角":k==="銳角"?"不到 3 大格，比直角小，是銳角":"超過 3 大格，比直角大，是鈍角"}。`}; }},
+  {u:"數5", k:"長方形的邊", make(){ const sq = Math.random()<.35, a = RI(4,15), b = sq ? a : RI(2,a-1);
+    if(sq) return {q:`正方形有一條邊長 ${a} 公分，另一條邊長幾公分？`, opts:four(a,[a*2,a+1,a*4]), exp:"正方形 4 條邊都一樣長。"};
+    return {q:`長方形上面的邊長 ${a} 公分，左邊的邊長 ${b} 公分。\n下面的邊長幾公分？`, opts:four(a,[b,a+b,a*2]), exp:"長方形相對的兩條邊一樣長，下面和上面一樣。"}; }},
+  {u:"數5", k:"直角個數", make(){ const t = RI(0,3); if(t===3) return {q:"四邊形（有 4 條邊的圖形）裡面有幾個角？", opts:four(4,[3,2,5]), exp:"有 4 條邊的圖形，裡面就有 4 個角。"};
+    const Q = [["正方形",4],["長方形",4],["三角板（直角三角形）",1]][t];
+    return {q:`一個${Q[0]}有幾個直角？`, opts:four(Q[1],[2,3,Q[1]===4?1:4]), exp:Q[1]===4?"正方形和長方形的 4 個角都是直角。":"三角板只有 1 個直角，另外兩個是銳角。"}; }},
+  // 數學 6　面積
+  {u:"數6", k:"數格子", make(){ const k = RI(5,13), b = blob(7,5,k,0);
+    return {q:GRID_Q+"\n這個圖形的面積是幾平方公分？"+zpic(gridSvg(7,5,b.cells)), opts:four(b.area,[b.area+1,b.area-1,b.area+2]), exp:`一格一格數，一共 ${b.area} 格，面積是 ${b.area} 平方公分。`}; }},
+  {u:"數6", k:"長方形格子", make(){ const w = RI(2,6), h = RI(2,4), c = []; for(let y=0;y<h;y++) for(let x=0;x<w;x++) c.push([x,y]);
+    return {q:GRID_Q+"\n這個長方形的面積是幾平方公分？"+zpic(gridSvg(w,h,c)), opts:four(w*h,[w+h,w*h+w,(w+h)*2]), exp:`一排 ${w} 格，有 ${h} 排，一共 ${w*h} 格，是 ${w*h} 平方公分。`}; }},
+  {u:"數6", k:"拼半格", make(){ const k = RI(4,9), t = one([2,2,4]), b = blob(7,5,k,t);
+    return {q:GRID_Q+"\n這個圖形的面積是幾平方公分？"+zpic(gridSvg(7,5,b.cells,b.tris)), opts:four(b.area,[k+t,k,b.area+1]), exp:`整格有 ${k} 格；半格有 ${t} 個，2 個半格拼成 1 格，是 ${t/2} 格。\n${k}＋${t/2}＝${b.area}，面積是 ${b.area} 平方公分。`}; }},
+  {u:"數6", k:"三角形切一半", make(){ let w, h; do{ w = RI(2,6); h = RI(2,4); } while((w*h)%2); const a = w*h/2, flip = Math.random()<.5;
+    const P = flip ? [[0,0],[w,h],[0,h]] : [[0,h],[w,h],[w,0]];
+    return {q:GRID_Q+"\n這個三角形的面積是幾平方公分？"+zpic(gridSvg(w+1,h+1,[],[],"",[P.map(([x,y])=>[x+.5>w?x:x,y])])), opts:four(a,[w*h,a+1,w+h]), exp:`它是 ${w}×${h} 的長方形切一半。長方形有 ${w*h} 格，一半是 ${a} 格，面積 ${a} 平方公分。`}; }},
+  {u:"數6", k:"比面積", make(){ const a = RI(5,10), same = Math.random()<.3, bk = same ? a : a+one([-2,-1,1,2]), A = blob(5,4,a,0), B = blob(5,4,bk,0), big = A.area===B.area ? "一樣大" : A.area>B.area ? "甲" : "乙";
+    return {q:GRID_Q+"\n甲、乙哪一個面積比較大？"+zpic(gridSvg(5,4,A.cells,[],"甲")+" "+gridSvg(5,4,B.cells,[],"乙")), opts:[big, ...["甲","乙","一樣大"].filter(x=>x!==big)], exp:`甲是 ${A.area} 平方公分，乙是 ${B.area} 平方公分。${big==="一樣大"?"一樣大。":big+"比較大。"}`}; }},
+  {u:"數6", k:"平方公分", make(){ const t = RI(0,2);
+    if(t===0) return {q:"1 平方公分是多大？", opts:["邊長 1 公分的正方形的面積","1 公分長的線","邊長 1 毫米的正方形的面積","邊長 10 公分的正方形的面積"], keepAns:true, ans:"邊長 1 公分的正方形的面積", exp:"邊長 1 公分的正方形，面積是 1 平方公分。"};
+    if(t===1) return {q:"「平方公分」可以怎麼寫？", opts:["cm²","cm","mm","kg"], exp:"平方公分寫成 cm²；cm 是公分。"};
+    const n = RI(6,30); return {q:`用 ${n} 個 1 平方公分的小正方形，\n不重疊拼成一個圖形，面積是幾平方公分？`, opts:four(n,[n+4,n-2,n*2]), exp:`怎麼拼都一樣，${n} 個 1 平方公分就是 ${n} 平方公分。`}; }},
+  // 數學 7　除法（二位數除以一位數，商是一位數）
+  {u:"數7", k:"整除", make(){ const b = RI(2,9), q = RI(2,9), a = b*q; if(a<10) return {q:`${b*9} ÷ ${b} ＝ ？`, opts:four(9,[8,b,10]), exp:`${b}×9＝${b*9}，所以 ${b*9}÷${b}＝9。`};
+    return {q:`${a} ÷ ${b} ＝ ？`, opts:four(q,[q+1,q-1,a-b]), exp:`想九九乘法：${b}×${q}＝${a}，所以 ${a}÷${b}＝${q}。`}; }},
+  {u:"數7", k:"有餘數", make(){ const b = RI(3,9), q = RI(2,9), r = RI(1,b-1), a = b*q+r;
+    const o = [`${q} 餘 ${r}`]; for(const w of [`${q-1} 餘 ${r+b}`, `${q+1} 餘 ${r}`, `${q} 餘 ${r+1<b?r+1:r-1}`, `${q-1} 餘 ${r}`]) if(o.length<4 && !o.includes(w) && !w.startsWith("0 ") && !w.endsWith(" 0")) o.push(w);
+    return {q:`${a} ÷ ${b} ＝ ？`, opts:o, exp:`${b}×${q}＝${b*q}，${a}－${b*q}＝${r}，所以是 ${q} 餘 ${r}。\n餘數 ${r} 要比除數 ${b} 小。`}; }},
+  {u:"數7", k:"平分", make(){ const b = RI(2,9), q = RI(2,9), a = b*q, T = one([["顆糖果","位小朋友","每人","顆"],["張貼紙","個人","每人","張"],["枝鉛筆","個盒子","每盒","枝"]]);
+    if(a<10) return MATH.find(m=>m.k==="整除").make();
+    return {q:`${a} ${T[0]}平分給 ${b} ${T[1]}，\n${T[2]}分到幾${T[3]}？`, opts:four(q,[a-b,q+1,b]), exp:`平分就是用除法：${a}÷${b}＝${q}（${b}×${q}＝${a}）。`}; }},
+  {u:"數7", k:"分裝", make(){ const b = RI(2,9), q = RI(2,9), a = b*q, T = one([["顆雞蛋","顆","盒"],["公升果汁","公升","瓶"],["本書","本","疊"]]);
+    if(a<10) return MATH.find(m=>m.k==="整除").make();
+    return {q:`有 ${a} ${T[0]}，每 ${b} ${T[1]}裝成一${T[2]}，\n可以裝成幾${T[2]}？`, opts:four(q,[a-b,q+1,a+b]), exp:`每 ${b} ${T[1]}一份，看 ${a} 裡有幾個 ${b}：${a}÷${b}＝${q}。`}; }},
+  {u:"數7", k:"餘數應用", make(){ const b = RI(3,9), q = RI(2,8), r = RI(1,b-1), a = b*q+r, t = RI(0,2);
+    if(t===0) return {q:`${a} 個人去坐車，每輛車最多坐 ${b} 人，\n至少要幾輛車才坐得下？`, opts:four(q+1,[q,q+2,r]), exp:`${a}÷${b}＝${q} 餘 ${r}，坐滿 ${q} 輛還剩 ${r} 人，要再多 1 輛，共 ${q+1} 輛。`};
+    if(t===1) return {q:`${a} 個蘋果，每 ${b} 個裝一袋，\n最多可以裝滿幾袋？`, opts:four(q,[q+1,r,q-1]), exp:`${a}÷${b}＝${q} 餘 ${r}，剩下 ${r} 個不夠裝一袋，最多裝滿 ${q} 袋。`};
+    return {q:`${a} 張卡片，每人發 ${b} 張，發到不夠發為止，\n最後剩下幾張？`, opts:four(r,[q,b-r,r+1]), exp:`${a}÷${b}＝${q} 餘 ${r}，剩下 ${r} 張。`}; }},
+  {u:"數7", k:"找被除數", make(){ const b = RI(3,9), q = RI(2,9), r = RI(1,b-1), a = b*q+r;
+    return {q:`□ ÷ ${b} ＝ ${q} 餘 ${r}，□ 是多少？`, opts:four(a,[b*q,b*q-r,a+b]), exp:`驗算：除數×商＋餘數＝被除數，\n${b}×${q}＋${r}＝${a}。`}; }},
+  {u:"數7", k:"最大餘數", make(){ const b = RI(3,9);
+    return {q:`一個數除以 ${b}，餘數最大可能是多少？`, opts:four(b-1,[b,b+1,b-2]), exp:`餘數一定要比除數小，除以 ${b} 時餘數最大是 ${b-1}。`}; }},
+  {u:"數7", k:"能不能整除", make(){ const b = RI(3,9), m = b*RI(2,9) < 10 ? b*RI(4,9) : b*RI(2,9), o = [String(m)];
+    for(let g=0; o.length<4 && g<200; g++){ const v = RI(10,99); if(v%b && !o.includes(String(v))) o.push(String(v)); }
+    return {q:`下面哪一個數除以 ${b} 可以整除（沒有餘數）？`, opts:o, exp:`${b}×${m/b}＝${m}，所以 ${m}÷${b}＝${m/b}，沒有餘數。`}; }},
+  {u:"數7", k:"0和1的除法", make(){ const a = RI(2,9), t = RI(0,2);
+    if(t===0) return {q:`${a} ÷ 1 ＝ ？`, opts:four(a,[1,a+1,0]), exp:`每 1 個分一份，${a} 個可以分 ${a} 份。`};
+    if(t===1) return {q:`${a} ÷ ${a} ＝ ？`, opts:four(1,[a,0,2]), exp:`${a}×1＝${a}，所以 ${a}÷${a}＝1。`};
+    return {q:`0 ÷ ${a} ＝ ？`, opts:["0","1",String(a),String(a+1)], exp:"沒有東西可以分，每份都是 0。"}; }},
+  {u:"數7", k:"輪流發", make(){ const p = RI(4,9), q = RI(2,4), r = RI(1,p-1), n = p*q+r;
+    return {q:`老師有 ${n} 張卡片，分給 ${p} 位同學。\n從第 1 位開始，每人輪流拿 1 張，直到發完。\n有幾位同學會拿到 ${q+1} 張？`, opts:four(r,[p-r,q,q+1]), exp:`${n}÷${p}＝${q} 餘 ${r}：每人先拿到 ${q} 張，\n剩下的 ${r} 張再從第 1 位發到第 ${r} 位，所以有 ${r} 位拿到 ${q+1} 張。`}; }},
+  {u:"數7", k:"可能剩下", make(){ const b = RI(4,9), r = RI(1,b-1);
+    return {q:`一箱橘子，每 ${b} 顆裝成一盒，全部都要裝完。\n下面哪一個可能是最後剩下的顆數？`, opts:[String(r),String(b),String(b+1),String(b+2)], exp:`剩下的如果有 ${b} 顆或更多，就還能再裝一盒。\n所以剩下的一定比 ${b} 小。`}; }},
+  {u:"數7", k:"偶數範圍", make(){ const t = RI(2,8), lo = t*10+RI(0,2), hi = lo+RI(5,7) > t*10+9 ? t*10+9 : lo+RI(5,7);
+    const ev = []; for(let v=lo+1; v<hi; v++) if(v%2===0) ev.push(v); const a = one(ev), o = [String(a)];
+    for(const v of [lo, hi, lo+1, hi-1, a+1, a-1, t*10+11]) if(o.length<4 && !ev.includes(v) && !o.includes(String(v)) && v>=10) o.push(String(v));
+    return {q:`有一個偶數 ${t}□，比 ${lo} 大，又比 ${hi} 小。\n下面哪一個可能是它？`, opts:o, exp:`比 ${lo} 大、比 ${hi} 小的偶數有 ${ev.join("、")}（個位是 0、2、4、6、8）。`}; }},
+  {u:"數7", k:"奇數偶數", make(){ const ev = Math.random()<.5, pick = ()=>RI(10,99), nums = new Set(); const want = ()=>{ let v; do{ v = pick(); } while((v%2===0)!==ev); return v; }, other = ()=>{ let v; do{ v = pick(); } while((v%2===0)===ev || nums.has(v)); return v; };
+    const a = want(); nums.add(a); const o = [String(a)]; while(o.length<4){ const v = other(); nums.add(v); o.push(String(v)); }
+    return {q:`下面哪一個是${ev?"偶數":"奇數"}？`, opts:o, exp:`${ev?"偶數":"奇數"}除以 2 ${ev?"沒有餘數（個位是 0、2、4、6、8）":"會餘 1（個位是 1、3、5、7、9）"}。${a} 的個位是 ${a%10}。`}; }},
 ];
 MATH.forEach((m,i)=>BANK.push({id:`math-${m.u}-${m.k}`, u:m.u, t:"數學", s:"數學", q:"", opts:[], ans:"", exp:"", w:7, make:m.make}));   // 數學題型少，權重拉高，期中範圍裡約占三成
 // 卓越盃（三年級）：比照康軒衝刺包六個主題的題型自己出的應用題，答案都另外驗算過
@@ -2819,7 +2919,7 @@ let place = null;      // 這一趟去哪裡探險
 // 課程表：以後加年級或單元，只要在這裡加一筆
 const CURR = [{name:"三年級上學期", subs:[
   {k:"國", name:"國語", ver:"南一", units:[["國1","第 1 課 你好，新朋友"],["國2","第 2 課 我們的約定"],["國3","第 3 課 下課十分鐘"],["國4","第 4 課 一顆黑點"],["國5","第 5 課 火大了"],["國6","第 6 課 我該怎麼辦？"],["國7","第 7 課 最年輕的奶奶"],["國8","第 8 課 魔「髮」哥哥"]]},
-  {k:"數", name:"數學", ver:"康軒", units:[["數1","1 10000 以內的數"],["數2","2 四位數的加減"],["數3","3 毫米"],["數4","4 乘法"],["數5","5 角"]]},
+  {k:"數", name:"數學", ver:"康軒", units:[["數1","1 10000 以內的數"],["數2","2 四位數的加減"],["數3","3 毫米"],["數4","4 乘法"],["數5","5 角"],["數6","6 面積"],["數7","7 除法"]]},
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
@@ -3043,6 +3143,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   // 11/9 雜誌：只做一次，自動加進範圍（家長要求）
   if(!me.ven6){ me.ven6 = 1; if(!cfg.tops.includes("英6")) cfg.tops.push("英6"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 11/10 雜誌：只做一次，自動加進範圍
+  // 11/22 家長：數學改成期中考後的 5 角、6 面積、7 除法（只做一次）
+  if(!me.v23){ me.v23 = 1; cfg.tops = cfg.tops.filter(u=>!["數1","數2","數3","數4"].includes(u)); ["數5","數6","數7"].forEach(u=>{ if(!cfg.tops.includes(u)) cfg.tops.push(u); }); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven8){ me.ven8 = 1; if(!cfg.tops.includes("英8")) cfg.tops.push("英8"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven7){ me.ven7 = 1; if(!cfg.tops.includes("英7")) cfg.tops.push("英7"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
@@ -3646,13 +3748,21 @@ function nextQ(){
 }
 
 // 計算題自己按數字作答，不用選的，才知道是真的算出來
-function drawKeypad(box){ let v = "";
-  box.innerHTML = `<div class="kpd"><div class="kshow" id="kShow">？</div><div class="kkeys">${[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map(k=>k===""?"<i></i>":`<button class="key" data-k="${k}">${k}</button>`).join("")}</div></div>`;
-  box.querySelector(".kkeys").onclick = e=>{ const b = e.target.closest(".key"); if(!b || document.getElementById("nextBtn")) return; sfx("tap");
-    if(b.dataset.k==="⌫") v = v.slice(0,-1); else v += b.dataset.k;
-    document.getElementById("kShow").textContent = v || "？";
-    if(v.length>=cur.ans.length){ box.querySelectorAll(".key").forEach(x=>x.disabled = true); const ok = v===cur.ans; document.getElementById("kShow").classList.add(ok?"good":"bad"); answer(v); } };
-}
+// 數字題：一格一位，預設從個位往前填（姐姐用心算從個位開始，11/22），點格子可以改，按「送出」才算
+function drawKeypad(box){ const n = cur.ans.length, a = Array(n).fill(""), PL = ["個","十","百","千","萬"]; let rtl = me.kdir!=="l", pos = rtl ? n-1 : 0, sent = false;
+  box.innerHTML = `<div class="kpd"><div class="kbx" id="kBx"></div><div class="kkeys">${[1,2,3,4,5,6,7,8,9,"⌫",0,"↔"].map(k=>`<button class="key ${k==="↔"?"kdir":""}" data-k="${k}">${k}</button>`).join("")}</div><button class="go" id="kOk">送出</button></div>`;
+  const draw = ()=>{ document.getElementById("kBx").innerHTML = a.map((d,i)=>`<button class="kb ${i===pos&&!sent?"cur":""}" data-i="${i}">${d||"&nbsp;"}<small>${PL[n-1-i]||""}位</small></button>`).join("");
+    box.querySelector(".kdir").textContent = rtl ? "← 從個位" : "從前面 →";
+    const ok = document.getElementById("kOk"), full = a.every(d=>d!==""); ok.disabled = !full || sent; ok.style.opacity = full ? 1 : .45; };
+  const busy = ()=> sent || !!document.getElementById("nextBtn");
+  document.getElementById("kBx").onclick = e=>{ const b = e.target.closest(".kb"); if(!b || busy()) return; pos = +b.dataset.i; sfx("tap"); draw(); };
+  box.querySelector(".kkeys").onclick = e=>{ const b = e.target.closest(".key"); if(!b || busy()) return; sfx("tap"); const k = b.dataset.k;
+    if(k==="↔"){ rtl = !rtl; me.kdir = rtl ? "r" : "l"; saveMe(); if(a.every(d=>d==="")) pos = rtl ? n-1 : 0; }
+    else if(k==="⌫"){ if(a[pos]==="") pos = rtl ? Math.min(n-1,pos+1) : Math.max(0,pos-1); a[pos] = ""; }
+    else { a[pos] = k; pos = rtl ? Math.max(0,pos-1) : Math.min(n-1,pos+1); }
+    draw(); };
+  document.getElementById("kOk").onclick = ()=>{ if(busy() || a.some(d=>d==="")) return; sent = true; const v = a.join("").replace(/^0+(?=\d)/,""); draw(); box.querySelectorAll("button").forEach(x=>x.disabled = true); document.getElementById("kBx").classList.add(v===cur.ans?"good":"bad"); answer(v); };
+  draw(); }
 function answer(o){
   clearInterval(timer); shielded = false;
   const ok = o===cur.ans;
