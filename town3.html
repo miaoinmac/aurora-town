@@ -1537,6 +1537,10 @@ BANK.push({id:"英9-變化", u:"英9", t:"英文", s:"文法", w:8, make(){ cons
   return {q:`"${b}" is an adverb. What is the adjective (形容詞)?`, opts:[a,...bad.slice(0,1),a===b?"faster":b,b+"s"].filter((x,i,s)=>s.indexOf(x)===i).slice(0,4), exp:`${a} → ${b}。${why}`}; }});
 BANK.push({id:"英9-詞性", u:"英9", t:"英文", s:"文法", w:5, make(){ const [a,b] = one(E9W.filter(x=>x[0]!==x[1])), adv = Math.random()<0.5;
   return {q:`"${adv?b:a}" is a(n) ___.`, opts:["adjective 形容詞","adverb 副詞"], ans:adv?"adverb 副詞":"adjective 形容詞", keepAns:true, exp:`${a} 是形容詞，${b} 是副詞（多半是 ly 結尾）。`}; }});
+// Kahoot「選擇詞性跟變化」：給一個字，選「詞性＋另一個樣子」（Kahoot 是複選，這裡合成一個選項）；錯拼學 Kahoot 的 ty 結尾
+BANK.push({id:"英9-K", u:"英9", t:"英文", s:"文法", w:8, make(){ const [a,b] = one(E9W.filter(x=>x[0]!==x[1])), adv = Math.random()<0.5, w = adv?b:a, o = adv?a:b, me1 = adv?"副詞":"形容詞", ot = adv?"形容詞":"副詞";
+  const bad = adv ? a.replace(/y$/,"")+"ty" : a.replace(/e$/,"")+(a.endsWith("e")?"ety":"ty");
+  return {q:`Kahoot：選擇詞性跟變化\n「${w}」是什麼詞？它的${ot}是哪個？`, opts:[`${me1}；${o}`,`${ot}；${o}`,`${me1}；${bad}`,`${ot}；${w}`], exp:`${w} 是${me1}，${ot}是 ${o}（${a} → ${b}）。`}; }});
 // 句子：形容詞（描述名詞、放在 is／a ___ 名詞）還是副詞（描述動作）
 const E9S = (q,adj,adv,ans,exp) => E9(q,[adj,adv],exp,ans);
 E9S("The cat is very ___.","quiet","quietly","quiet","is 後面描述貓本身，用形容詞。");
