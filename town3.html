@@ -1515,6 +1515,72 @@ E8("Where does Jess's family live?",["in a poor rural village", "in a big city",
 E8("Leslie is the same age ___ Jess.",["as", "and", "to", "of"],"the same ＋名詞＋as ……＝和……一樣。");
 E8R(["She's", "the fastest", "runner", "in the school!"]);
 
+// 英文文法：形容詞 vs 副詞（補習班 F0 Lesson 4，11/23 這週）。句子自己寫；詳解用中文
+let E9n = 0; const E9id = () => `英9-${++E9n}`;
+const E9 = (q,opts,exp,ans=opts[0]) => BANK.push({id:E9id(), u:"英9", t:"英文", s:"文法", q, opts, ans, exp, w:4});
+const E9R = c => BANK.push({id:E9id(), u:"英9", t:"英文", s:"句子重組", reorder:true, w:3, make(){ return {q:"Put the words in order.", chunks:c, ans:c.join(" "), opts:[c.join(" ")], exp:c.join(" ")}; }});
+// 形容詞 → 副詞（含常見錯法），和上課的 24 個字一樣
+const E9W = [["bad","badly",["badily","bady"],"直接加 ly。"],["easy","easily",["easyly","easly"],"y 結尾：y 改 i 再加 ly。"],
+ ["fast","fast",["fastly","fastily"],"fast 的副詞還是 fast，沒有 fastly！"],["happy","happily",["happyly","happly"],"y 結尾：y 改 i 再加 ly。"],
+ ["glad","gladly",["gladily","gladdy"],"直接加 ly。"],["angry","angrily",["angryly","angrly"],"y 結尾：y 改 i 再加 ly。"],
+ ["jealous","jealously",["jealousely","jealousily"],"直接加 ly。"],["loud","loudly",["loudely","loudily"],"直接加 ly。"],
+ ["excited","excitedly",["excitely","excitedty"],"直接加 ly。"],["quick","quickly",["quickely","quickty"],"直接加 ly。"],
+ ["correct","correctly",["correcty","correctely"],"直接加 ly。"],["hungry","hungrily",["hungryly","hungrly"],"y 結尾：y 改 i 再加 ly。"],
+ ["painful","painfully",["painfuly","painfulty"],"ful 結尾加 ly，會有兩個 l：painfully。"],["lazy","lazily",["lazyly","lazly"],"y 結尾：y 改 i 再加 ly。"],
+ ["brave","bravely",["bravly","bravily"],"e 留著，直接加 ly。"],["gentle","gently",["gentlely","gentley"],"le 結尾：把 e 換成 y。"],
+ ["slow","slowly",["slowely","slowily"],"直接加 ly。"],["terrible","terribly",["terriblely","terribley"],"le 結尾：把 e 換成 y。"],
+ ["polite","politely",["politly","politily"],"e 留著，直接加 ly。"],["wise","wisely",["wisly","wisily"],"e 留著，直接加 ly。"],
+ ["safe","safely",["safly","safily"],"e 留著，直接加 ly。"],["separate","separately",["separatly","separatily"],"e 留著，直接加 ly。"],
+ ["quiet","quietly",["quietily","quiety"],"直接加 ly。"],["good","well",["goodly","welly"],"特別的字！good 的副詞是 well。"]];
+BANK.push({id:"英9-變化", u:"英9", t:"英文", s:"文法", w:8, make(){ const [a,b,bad,why] = one(E9W);
+  if(Math.random()<0.5) return {q:`What is the adverb (副詞) of "${a}"?`, opts:[b,...bad,a===b?"faster":a], exp:`${a} → ${b}。${why}`};
+  return {q:`"${b}" is an adverb. What is the adjective (形容詞)?`, opts:[a,...bad.slice(0,1),a===b?"faster":b,b+"s"].filter((x,i,s)=>s.indexOf(x)===i).slice(0,4), exp:`${a} → ${b}。${why}`}; }});
+BANK.push({id:"英9-詞性", u:"英9", t:"英文", s:"文法", w:5, make(){ const [a,b] = one(E9W.filter(x=>x[0]!==x[1])), adv = Math.random()<0.5;
+  return {q:`"${adv?b:a}" is a(n) ___.`, opts:["adjective 形容詞","adverb 副詞"], ans:adv?"adverb 副詞":"adjective 形容詞", keepAns:true, exp:`${a} 是形容詞，${b} 是副詞（多半是 ly 結尾）。`}; }});
+// 句子：形容詞（描述名詞、放在 is／a ___ 名詞）還是副詞（描述動作）
+const E9S = (q,adj,adv,ans,exp) => E9(q,[adj,adv],exp,ans);
+E9S("The cat is very ___.","quiet","quietly","quiet","is 後面描述貓本身，用形容詞。");
+E9S("The cat walks ___.","quiet","quietly","quietly","walks 是動作，用副詞描述怎麼走。");
+E9S("Lily is a ___ singer.","good","well","good","a ___ singer：描述名詞 singer，用形容詞。");
+E9S("Lily sings very ___.","good","well","well","sings 是動作，good 的副詞是 well。");
+E9S("My brother is a ___ swimmer.","fast","fastly","fast","描述名詞 swimmer，用形容詞 fast。");
+E9S("My brother swims ___.","fast","fastly","fast","fast 當副詞也是 fast，沒有 fastly！");
+E9S("The soup is ___. Don't touch it!","hot","hotly","hot","is 後面描述湯，用形容詞。");
+E9S("The puppy eats its food ___.","hungry","hungrily","hungrily","eats 是動作，用副詞 hungrily。");
+E9S("I am ___. I want to eat now!","hungry","hungrily","hungry","am 後面描述我自己，用形容詞。");
+E9S("Please close the door ___.","gentle","gently","gently","close 是動作，用副詞 gently。");
+E9S("Grandma is a ___ woman.","gentle","gently","gentle","描述名詞 woman，用形容詞。");
+E9S("The kids play ___ in the park.","happy","happily","happily","play 是動作，用副詞 happily。");
+E9S("We are ___ today.","happy","happily","happy","are 後面描述我們，用形容詞。");
+E9S("He answers all the questions ___.","correct","correctly","correctly","answers 是動作，用副詞 correctly。");
+E9S("Your answer is ___.","correct","correctly","correct","is 後面描述答案，用形容詞。");
+E9S("The firefighter is very ___.","brave","bravely","brave","is 後面描述消防員，用形容詞。");
+E9S("The firefighter runs into the fire ___.","brave","bravely","bravely","runs 是動作，用副詞 bravely。");
+E9S("Cross the street ___.","safe","safely","safely","cross 是動作，用副詞 safely。");
+E9S("This puzzle is ___. I can finish it in one minute.","easy","easily","easy","is 後面描述拼圖，用形容詞。");
+E9S("She finishes the puzzle ___.","easy","easily","easily","finishes 是動作，用副詞 easily。");
+E9S("The music is too ___!","loud","loudly","loud","is 後面描述音樂，用形容詞。");
+E9S("The boys shout ___.","loud","loudly","loudly","shout 是動作，用副詞 loudly。");
+E9S("My dad drives ___ in the rain.","slow","slowly","slowly","drives 是動作，用副詞 slowly。");
+E9S("He is a ___ boy. He always says \"thank you.\"","polite","politely","polite","描述名詞 boy，用形容詞。");
+E9S("She asks ___, \"May I have some water?\"","polite","politely","politely","asks 是動作，用副詞 politely。");
+E9S("The children wait ___ for the gift.","excited","excitedly","excitedly","wait 是動作，用副詞 excitedly。");
+E9S("The lazy cat sleeps ___ all day.","lazy","lazily","lazily","sleeps 是動作，用副詞 lazily；前面的 lazy 是描述 cat。");
+E9S("It was a ___ storm.","terrible","terribly","terrible","描述名詞 storm，用形容詞。");
+// 規則
+E9("Adjectives (形容詞) describe ___.",["nouns（人、事、物）","actions（動作）","numbers","colors only"],"形容詞描述名詞：a happy boy。");
+E9("Adverbs (副詞) describe ___.",["actions（動作）","nouns（人、事、物）","names","places only"],"副詞描述動作：He sings happily.");
+E9("Which word is NOT a real word?",["fastly","fast","quickly","slowly"],"fast 的副詞還是 fast，沒有 fastly。");
+E9("Which word is NOT a real word?",["goodly","well","good","badly"],"good 的副詞是 well，沒有 goodly。");
+E9("happy → happily. What is the rule?",["y 改 i，再加 ly","直接加 ly","去掉 y 加 ly","加 ily 在 y 後面"],"happy、easy、angry、hungry、lazy 都是 y 改 i 加 ly。");
+E9("gentle → gently. What is the rule?",["le 的 e 換成 y","直接加 ly","加 ely","去掉 le 加 ly"],"gentle→gently、terrible→terribly。");
+E9("Which sentence is correct?",["She runs fast.","She runs fastly.","She is a fastly runner.","She run fastly."],"fast 當形容詞、副詞都是 fast。");
+E9("Which sentence is correct?",["He plays the piano well.","He plays the piano good.","He is a well player.","He plays well the piano."],"描述動作 plays 用 well；a good player 才用 good。");
+E9("Which sentence is correct?",["The baby sleeps quietly.","The baby sleeps quiet.","The baby is quietly.","The quietly baby sleeps."],"sleeps 是動作用 quietly；描述 baby 本身才用 quiet。");
+E9R(["The", "turtle", "walks", "slowly."]);
+E9R(["She", "is", "a", "careful", "girl."]);
+E9R(["They", "dance", "beautifully", "on the stage."]);
+
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 const one = arr => arr[RI(0,arr.length-1)];
@@ -2997,7 +3063,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10–11 不衝動購物"],["英8","11/12 植物、11/16–17 洗衣店、11/18 鯨落、11/23 泰瑞比西亞"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10–11 不衝動購物"],["英8","11/12 植物、11/16–17 洗衣店、11/18 鯨落、11/23 泰瑞比西亞"],["英9","文法：形容詞／副詞（F0 L4）"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -3226,6 +3292,8 @@ function migrateRes(){ if(!me.res) me.res = {coin:0};
   if(!me.v24){ me.v24 = 1; cfg.tops = cfg.tops.filter(u=>!["自1","自2","社1","社2"].includes(u)); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 11/22 家長：英文加回範圍（雜誌題 英5–英8；只做一次）
   if(!me.v25){ me.v25 = 1; ["英5","英6","英7","英8"].forEach(u=>{ if(!cfg.tops.includes(u)) cfg.tops.push(u); }); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
+  // 11/23 家長：這週文法 F0 L4 形容詞／副詞（只做一次）
+  if(!me.v26){ me.v26 = 1; if(!cfg.tops.includes("英9")) cfg.tops.push("英9"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven8){ me.ven8 = 1; if(!cfg.tops.includes("英8")) cfg.tops.push("英8"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   if(!me.ven7){ me.ven7 = 1; if(!cfg.tops.includes("英7")) cfg.tops.push("英7"); me.cfg = {tops:cfg.tops, len:cfg.len, time:cfg.time, gap:cfg.gap}; saveMe(); }
   // 卓越盃考完（11/15 之後）：只做一次，把暫停的自然、社會加回範圍
@@ -3716,7 +3784,7 @@ function choose(){
         if(me.gq.n<10 && Math.random()<0.3){ const gw = gq.filter(wrongOpen), a = gw.length ? gw : gq; me.gq.n++; return a[Math.floor(Math.random()*a.length)]; } } }   // 國語字音字形：每天約 10 題，和數學、英文輪流
     const spw = list.filter(q=>q.spell && q.u[0]==="英" && +q.u.slice(1)>=6 && !((stats[q.id]||{}).r>0)); if(spw.length) return spw[Math.floor(Math.random()*spw.length)];   // 雜誌當天單字的拼字題：每個字沒拼對過就先出，一定會練到
     const zNew = list.filter(q=>q.nw && !stats[q.id]); if(zNew.length && Math.random()<0.7) return zNew[Math.floor(Math.random()*zNew.length)];   // 卓越盃第二批：沒做過的新題優先，其餘機會留給錯題複習
-    const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英5") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；英文文法約四分之一；其他照樣錯題優先
+    const zr = Math.random(), zz = today()<=ZY_UNTIL && zr<0.4 ? list.filter(q=>q.u[0]==="卓") : zr>=0.4 && zr<0.65 ? list.filter(q=>q.u==="英9") : []; if(zz.length) list = zz;   // 卓越盃前：四成先出卓越盃；這週英文文法（11/23 起 英9 形容詞／副詞）約四分之一；其他照樣錯題優先
     else if(bossOn() && Math.random()<0.25){ const wk = list.filter(isWeak); if(wk.length) list = wk; }   // Boss 在的時候，偶爾從弱點裡出
     const bad = list.filter(wrongOpen);
     if(bad.length) list = bad;   // 錯過、還沒連對的題目一直出，到對為止
