@@ -3781,6 +3781,9 @@ function choose(){
   let list = cand.length ? cand : noAg.length ? noAg : pool;
   if(Date.now()<EN_AFTER){ const noEn = list.filter(q=>q.u[0]!=="英"); if(noEn.length) list = noEn; }   // 家長回家前先只出卓越盃
   if(place && place.area==="flow"){ const isE6 = q=>q.u[0]==="英", isM6 = q=>q.u[0]==="卓"||q.u[0]==="數", want = lastK==="英" ? isM6 : isE6, alt = list.filter(want); if(alt.length && list.some(q=>isE6(q)||isM6(q))) list = alt;   // 數學、英文一題一題輪流
+    if(today()==="2026-11-23"){ const g9 = (cand.length ? cand : pool).filter(q=>q.u==="英9");   // 11/23 家長：今天先做文法題（形容詞／副詞），前 20 題都出文法
+      if(g9.length){ if(!me.g9 || me.g9.d!==today()) me.g9 = {d:today(), n:0};
+        if(me.g9.n<20){ const gw = g9.filter(wrongOpen), gn = g9.filter(q=>!((stats[q.id]||{}).r>0)), a = gw.length ? gw : gn.length ? gn : g9; me.g9.n++; return a[Math.floor(Math.random()*a.length)]; } } }
     const sat = satList(), satLeft = sat.filter(q=>!me.sat.ok.includes(q.id));
     if(satLeft.length){ if(!me.sat.hi){ me.sat.hi = 1; toast(`📅 週六單字總複習！<br>把這週雜誌的 ${sat.length} 個單字再拼一遍 ✏️`); } return satLeft[Math.floor(Math.random()*satLeft.length)]; }   // 週六：這週單字先全部拼過
     { const gq = (cand.length ? cand : pool).filter(q=>q.u==="國7"||q.u==="國8");
