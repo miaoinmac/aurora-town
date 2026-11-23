@@ -1505,6 +1505,15 @@ E8("A whale fall can last ___.",["dozens of years", "one day", "one hour", "one 
 E8("small → ___",["smaller", "smallest", "more small", "smalls"],"比較兩個東西，形容詞加 -er：small → smaller。");
 E8("good → ___",["better", "gooder", "more good", "best"],"good 是特別的：good → better。");
 E8R(["Death", "brings", "new", "life."]);
+E8T("Type the missing word.\nThey live in a small ___.","village","village 村莊");
+E8T("Type the missing word.\nBe kind and show ___ to others.","respect","respect 尊重；尊敬");
+E8T("Type the missing word.\nI am in the third ___.","grade","grade 年級");
+E8T("Type the missing word.\nThey have one son and one ___.","daughter","daughter 女兒");
+E8("What does Jess like to do?",["draw", "swim", "sing", "cook"],"Jess 喜歡畫畫，可是爸爸覺得藝術沒有用。");
+E8("Who is the fastest runner in the school?",["Leslie", "Jess", "Jess's father", "the teacher"],"新搬來的鄰居 Leslie 是全校跑最快的人！");
+E8("Where does Jess's family live?",["in a poor rural village", "in a big city", "on a boat", "in a castle"],"rural＝鄉下的，他們住在維吉尼亞州貧窮的鄉下村莊。");
+E8("Leslie is the same age ___ Jess.",["as", "and", "to", "of"],"the same ＋名詞＋as ……＝和……一樣。");
+E8R(["She's", "the fastest", "runner", "in the school!"]);
 
 // ───────────── 數學（康軒三上 1～4 單元）：題目每次重新產生 ─────────────
 const RI = (a,b) => a + Math.floor(Math.random()*(b-a+1));
@@ -2988,7 +2997,7 @@ const CURR = [{name:"三年級上學期", subs:[
   {k:"自", name:"自然", ver:"康軒", units:[["自1","1 多采多姿的植物"],["自2","2 生活中的力"]]},
   {k:"社", name:"社會", ver:"康軒", units:[["社1","1 我的家庭"],["社2","2 學習與成長"]]},
   {k:"卓", name:"卓越盃", ver:"康軒衝刺包", units:[["卓1","整數與加減"],["卓2","乘法"],["卓3","分分看與分數"],["卓4","時間和日期"],["卓5","量的關係與計算"],["卓6","圖形與空間"]]},
-  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10–11 不衝動購物"],["英8","11/12 植物、11/16–17 洗衣店、11/18 鯨落"]]},
+  {k:"英", name:"英文", ver:"A+ 雜誌", units:[["英1","10 月第 1 週"],["英2","10 月第 2 週"],["英3","10 月第 3 週"],["英4","10 月第 4 週"],["英5","文法：a / an / the"],["英6","11/9 火雞俚語"],["英7","11/10–11 不衝動購物"],["英8","11/12 植物、11/16–17 洗衣店、11/18 鯨落、11/23 泰瑞比西亞"]]},
 ]}];
 const allSubs = () => CURR.flatMap(g=>g.subs);
 const scopeName = tops => { const out = [];
@@ -3683,7 +3692,7 @@ function startGame(list){
 
 // 週六單字總複習（2026-11-15 使用者：週五舞蹈課沒時間，改週六）：週六先把這週一～五雜誌單字全部重拼一遍，拼對才算過
 // 每做一天雜誌就在 MAG_DAYS 加一行（日期：當天拼字題的答案）
-const MAG_DAYS = {"2026-11-09":["new","hard","continue","interesting"], "2026-11-10":["regret","desire","advertisement","treat"], "2026-11-11":["scarf","deal","beat","nearly"], "2026-11-12":["human","loss","protect","energy"], "2026-11-16":["hang","dry","turn","up"], "2026-11-17":["directions","wash","pull","symbol"], "2026-11-18":["ocean","whale","rest","break"]};
+const MAG_DAYS = {"2026-11-09":["new","hard","continue","interesting"], "2026-11-10":["regret","desire","advertisement","treat"], "2026-11-11":["scarf","deal","beat","nearly"], "2026-11-12":["human","loss","protect","energy"], "2026-11-16":["hang","dry","turn","up"], "2026-11-17":["directions","wash","pull","symbol"], "2026-11-18":["ocean","whale","rest","break"], "2026-11-23":["village","respect","grade","daughter"]};
 function satList(){
   const d = new Date(); if(d.getDay()!==6) return [];
   const t = today(), from = new Date(d.getFullYear(),d.getMonth(),d.getDate()-6).toLocaleDateString("sv");
@@ -3988,7 +3997,7 @@ document.getElementById("wmap").style.backgroundImage = `url("${IMG("bg_world2")
 document.getElementById("sWeak").onclick = ()=>{ cfg.weak = !cfg.weak; syncSettings(); };
 document.getElementById("tHelp").onclick = ()=>startTut();
 // 雜誌影片暗號（2026-11-10 起）：影片四關各給一個暗號字，四個都打對就領獎勵，每一集只能領一次
-const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"], "11/11 綠圍巾":["PRICE","LAST","THINK","ENOUGH"], "11/12 植物睡覺 Munch Bug":["DARK","SLEEP","SAFE","LIGHT"], "11/16 洗衣店 Soggy Sock":["RAIN","DRYER","WAIT","HEAT"], "11/17 縮水襯衫 Shrinko":["SMALL","LABEL","CIRCLE","CARE"], "11/18 鯨落 Gloomo":["DEEP","BONES","FOOD","LIFE"]};
+const MAG_CODES = {"11/10 Buy-Buy Monster":["STOP","NEED","WAIT","SMART"], "11/11 綠圍巾":["PRICE","LAST","THINK","ENOUGH"], "11/12 植物睡覺 Munch Bug":["DARK","SLEEP","SAFE","LIGHT"], "11/16 洗衣店 Soggy Sock":["RAIN","DRYER","WAIT","HEAT"], "11/17 縮水襯衫 Shrinko":["SMALL","LABEL","CIRCLE","CARE"], "11/18 鯨落 Gloomo":["DEEP","BONES","FOOD","LIFE"], "11/23 泰瑞比西亞 Snubbo":["DRAW","FAST","RESPECT","FRIEND"]};
 document.getElementById("tCode").onclick = ()=>{ sfx("tap");
   const v = prompt("📬 輸入雜誌影片裡的 4 個暗號（中間空一格）"); if(!v) return;
   const got = new Set(v.toUpperCase().match(/[A-Z]+/g)||[]);
